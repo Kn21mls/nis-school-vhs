@@ -40,18 +40,20 @@ async function load(){
   if(!renderer){
     renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});$('viewport').append(renderer.domElement);
     scene=new T.Scene();scene.background=new T.Color(0xcbd9db);camera=new T.PerspectiveCamera(72,1,.045,350);camera.rotation.order='YXZ';
-    lightInterior(renderer,scene);apply();
+    lightInterior(renderer,scene);
+    const cameraLight=new T.PointLight(0xc0d1b4,4.5,8,2);camera.add(cameraLight);scene.add(camera);apply();
   }
   const [g,v]=await Promise.all([new GLTFLoader().loadAsync('school.glb',e=>{if(e.total)$('resume').textContent='Загрузка · '+Math.round(e.loaded*100/e.total)+'%';}),fetch('views.json').then(r=>r.json())]);
   await finishSurfaces(g.scene,renderer);views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
   g.scene.traverse(m=>{if(m.isMesh){if(!m.geometry.boundsTree)computeBoundsTree.call(m.geometry);meshes.push(m);}});
 }
 function hit(p,d,far){ray.set(p,d);ray.far=far;return ray.intersectObjects(meshes,false)[0];}
-const eye=1.57;
+const eye=1.24;
+const bodyRadius=0.175;
 function look(){dirty=true;camera.rotation.set(pitch,yaw,0,'YXZ');}
 function spawn(){
   const v=views.find(p=>p.name===selected)||views[0];camera.position.fromArray(v.position);
-  const floor=hit(camera.position,down,2.5);if(floor&&floor.distance>1)camera.position.y=floor.point.y+eye;
+  const floor=hit(camera.position,down,2.5);if(floor)camera.position.y=floor.point.y+eye;
   const [x,y,z]=v.direction;yaw=Math.atan2(-x,-z);pitch=Math.asin(y);look();
 }
 async function start(name){
@@ -78,8 +80,8 @@ for(const b of $('pad').children){b.onpointerdown=e=>{e.preventDefault();b.setPo
 function move(dx,dz){
   const p=camera.position,dist=Math.hypot(dx,dz);if(!dist)return;
   dir.set(dx/dist,0,dz/dist);
-  for(const height of [-1,-.18]){origin.copy(p);origin.y+=height;if(hit(origin,dir,dist+.22))return;}
-  origin.set(p.x+dx,p.y-eye+.39,p.z+dz);const floor=hit(origin,down,1.02);
+  for(const height of [-eye+.38,.055]){origin.copy(p);origin.y+=height;if(hit(origin,dir,dist+bodyRadius))return;}
+  origin.set(p.x+dx,p.y-eye+.32,p.z+dz);const floor=hit(origin,down,.88);
   if(floor){p.set(origin.x,floor.point.y+eye,origin.z);dirty=true;}
 }
 function frame(time){
@@ -92,5 +94,6 @@ function frame(time){
   }
   if(dirty){renderer.render(scene,camera);dirty=false;}frames++;if(time-last>650){$('fps').textContent=Math.round(frames*1000/(time-last))+' FPS';last=time;frames=0;}
 }
+
 
 

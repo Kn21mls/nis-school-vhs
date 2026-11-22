@@ -51,11 +51,14 @@ async function load(){
 function hit(p,d,far){ray.set(p,d);ray.far=far;return ray.intersectObjects(meshes,false)[0];}
 const eye=1.24;
 const bodyRadius=0.175;
+// Jumping: vertical speed, ground contact and time in the air (respawn if we fall out of the model).
+const gravity=9.8,jumpSpeed=3.7,up=new T.Vector3(0,1,0);
+let vy=0,grounded=true,airTime=0;
 function look(){dirty=true;camera.rotation.set(pitch,yaw,0,'YXZ');}
 function spawn(){
   const v=views.find(p=>p.name===selected)||views[0];camera.position.fromArray(v.position);
   const floor=hit(camera.position,down,2.5);if(floor)camera.position.y=floor.point.y+eye;
-  const [x,y,z]=v.direction;yaw=Math.atan2(-x,-z);pitch=Math.asin(y);look();
+  const [x,y,z]=v.direction;yaw=Math.atan2(-x,-z);pitch=Math.asin(y);vy=0;grounded=true;airTime=0;look();
 }
 async function start(name){
   const seq=++serial;selected=name;$('place-name').textContent=name;$('home').hidden=true;$('tour').hidden=false;$('resume').hidden=false;$('resume').disabled=true;$('resume').textContent='Загрузка модели…';
@@ -66,7 +69,7 @@ async function start(name){
 }
 $('leave').onclick=()=>{++serial;active=false;keys.clear();drag=null;if(document.pointerLockElement)document.exitPointerLock();renderer?.setAnimationLoop(null);$('tour').hidden=true;$('home').hidden=false;$('enter').focus();};
 function pause(){paused=true;keys.clear();drag=null;if(document.pointerLockElement)document.exitPointerLock();$('resume').textContent='Продолжить прогулку';$('resume').hidden=false;}
-$('snap').onclick=()=>{$('leave').onclick();prefillPlace(selected);};
+$('snap').onclick=()=>{const y=camera.position.y;$('leave').onclick();prefillPlace(selected,y);};
 $('reset').onclick=()=>{if(active)spawn();};
 function lock(){if(!touch&&!document.pointerLockElement){try{renderer.domElement.requestPointerLock?.()?.catch(()=>{});}catch{}}}
 $('resume').onclick=()=>{if(!active){start(selected);return;}paused=false;$('resume').hidden=true;lock();};
@@ -76,15 +79,31 @@ $('viewport').onpointerdown=e=>{if(!active||paused)return;drag=[e.clientX,e.clie
 $('viewport').onpointermove=e=>{if(drag&&!paused&&!document.pointerLockElement){rotate(e.clientX-drag[0],e.clientY-drag[1]);drag=[e.clientX,e.clientY];}};
 $('viewport').onpointerup=$('viewport').onpointercancel=()=>drag=null;
 document.onmousemove=e=>{if(active&&!paused&&document.pointerLockElement)rotate(e.movementX,e.movementY);};
-window.addEventListener('keydown',e=>{if(!active||paused||$('panel').open)return;if(e.code==='Escape'){pause();return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight'].includes(e.code)){e.preventDefault();keys.add(e.code);}});
+window.addEventListener('keydown',e=>{if(!active||paused||$('panel').open)return;if(e.code==='Escape'){pause();return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Space'].includes(e.code)){e.preventDefault();keys.add(e.code);}});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{if(active)pause();});
 for(const b of $('pad').children){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);};b.onpointerup=b.onpointercancel=()=>keys.delete(b.dataset.key);}
 function move(dx,dz){
   const p=camera.position,dist=Math.hypot(dx,dz);if(!dist)return;
   dir.set(dx/dist,0,dz/dist);
   for(const height of [-eye+.38,.055]){origin.copy(p);origin.y+=height;if(hit(origin,dir,dist+bodyRadius))return;}
-  origin.set(p.x+dx,p.y-eye+.32,p.z+dz);const floor=hit(origin,down,.88);
-  if(floor){p.set(origin.x,floor.point.y+eye,origin.z);dirty=true;}
+  origin.set(p.x+dx,p.y-eye+.32,p.z+dz);
+  if(grounded){const floor=hit(origin,down,.88);if(floor){p.set(origin.x,floor.point.y+eye,origin.z);dirty=true;}return;}
+  // In the air: allow the step only above solid ground, so a jump never carries you off a gallery.
+  if(hit(origin,down,1.7)){p.x=origin.x;p.z=origin.z;dirty=true;}
+}
+function vertical(dt){
+  const p=camera.position;
+  if(keys.has('Space')&&grounded){vy=jumpSpeed;grounded=false;airTime=0;}
+  if(grounded){
+    origin.set(p.x,p.y-eye+.32,p.z);
+    if(!hit(origin,down,.88)){grounded=false;vy=0;airTime=0;}
+    return;
+  }
+  airTime+=dt;vy-=gravity*dt;const dy=vy*dt;dirty=true;
+  if(dy>0){origin.copy(p);if(hit(origin,up,dy+.12))vy=0;else p.y+=dy;return;}
+  origin.set(p.x,p.y-eye+.05,p.z);const floor=hit(origin,down,-dy+.06);
+  if(floor){p.y=floor.point.y+eye;vy=0;grounded=true;}
+  else{p.y+=dy;if(airTime>4)spawn();}
 }
 function frame(time){
   const dt=Math.min((time-prev)/1000,.05);prev=time;
@@ -93,6 +112,7 @@ function frame(time){
     const s=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
     const step=(keys.has('ShiftLeft')||keys.has('ShiftRight')?4.5:2.6)*dt/(Math.hypot(f,s)||1);
     move((s*Math.cos(yaw)-f*Math.sin(yaw))*step,0);move(0,(-s*Math.sin(yaw)-f*Math.cos(yaw))*step);
+    vertical(dt);
   }
   if(dirty){renderer.render(scene,camera);dirty=false;}frames++;if(time-last>650){$('fps').textContent=Math.round(frames*1000/(time-last))+' FPS';last=time;frames=0;}
 }

@@ -218,6 +218,9 @@ body:has(#tour:not([hidden])) .screen-fx{display:none}
 #pad{position:absolute;bottom:24px;left:18px;display:grid;grid-template-columns:repeat(3,48px);gap:4px;z-index:4}
 #pad button{height:46px;background:#050705cc;color:var(--acid);border:1px solid var(--acid);touch-action:none}
 #pad button:first-child{grid-column:2}#pad button:nth-child(2){grid-column:1}
+#pad .jump{grid-column:3;grid-row:1;background:var(--acid);color:var(--acid-ink);font-size:20px}
+.place-row{display:grid;grid-template-columns:150px 1fr;gap:12px}
+@media (max-width:640px){.place-row{grid-template-columns:1fr;gap:0}}
 
 /* dialog */
 dialog{width:min(420px,92vw);border:1px solid var(--acid);background:var(--panel);color:var(--ink);padding:22px;box-shadow:8px 8px 0 #000}

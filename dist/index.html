@@ -36,12 +36,12 @@
   <section class="hero" id="top">
     <div class="viewfinder">
       <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="vf-top"><span class="rec"><b></b>REC</span><span class="osd-small">2 этаж</span></div>
+      <div class="vf-top"><span class="rec"><b></b>REC</span><span class="osd-small">все этажи</span></div>
       <div class="hero-grid">
         <div class="hero-copy">
           <p class="prompt">&gt; 3d-модель школы<i class="caret"></i></p>
           <h1 class="glitch" data-text="НАЙДИ НЕТОЧНОСТЬ">НАЙДИ<br>НЕТОЧНОСТЬ<span class="cursor">_</span></h1>
-          <div class="tags"><span>3D-модель</span><span class="alt">2 этаж</span><span class="dash">фото = очки</span></div>
+          <div class="tags"><span>3D-модель</span><span class="alt">все этажи</span><span class="dash">фото = очки</span></div>
           <p class="lead">Пройдись по 3D-модели школы от первого лица. Если какое-то место в жизни выглядит иначе — сфотографируй его и отправь. За каждое подтверждённое фото начисляются очки.</p>
           <div class="cta-row">
             <button class="big" id="enter">
@@ -104,10 +104,18 @@
 
       <form class="panel-box upload" id="uploadForm" novalidate>
         <h3>Новое фото</h3>
+        <div class="place-row">
+        <label>Этаж
+          <select id="floor" required>
+            <option value="1 этаж">1 этаж</option><option value="2 этаж" selected>2 этаж</option><option value="3 этаж">3 этаж</option><option value="4 этаж">4 этаж</option>
+            <option value="Подвал">подвал</option><option value="Улица">улица / двор</option><option value="Лестница">лестница</option>
+          </select>
+        </label>
         <label>Место
-          <input id="place" list="placeList" required maxlength="80" placeholder="коридор у лестницы, 2 этаж">
+          <input id="place" list="placeList" required maxlength="64" placeholder="коридор у лестницы">
           <datalist id="placeList"></datalist>
         </label>
+        </div>
         <label>Что отличается от модели
           <textarea id="desc" required minlength="10" maxlength="1200" rows="4" placeholder="В модели здесь стена, а на самом деле стеклянная дверь; нет скамейки у окна…"></textarea>
         </label>
@@ -133,7 +141,7 @@
   <div class="tour-osd" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><span class="rec"><b></b>REC</span><span class="timecode" id="tourTime">00:00:00</span></div>
   <div class="tourbar"><button id="leave">‹ к обзору</button><b id="place-name"></b><button id="snap" title="Отправить фото этого места">◉ нашёл неточность</button><button id="reset" title="Вернуться в точку входа">↺ к началу</button></div>
   <button id="resume" class="btn">продолжить</button>
-  <div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button></div>
+  <div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button><button data-key="Space" aria-label="Прыжок" class="jump">⤒</button></div>
   <span id="fps" hidden></span>
 </section>
 
@@ -147,9 +155,10 @@
   <div id="instructions">
     <p><kbd>W A S D</kbd> или стрелки — ходьба</p>
     <p><kbd>Shift</kbd> — ускориться</p>
+    <p><kbd>Пробел</kbd> — прыжок</p>
     <p>Мышь — осмотр. Если курсор свободен, удерживай левую кнопку и тяни.</p>
     <p><kbd>Esc</kbd> — освободить курсор</p>
-    <p>На телефоне — стрелки для ходьбы, проведи пальцем по сцене для обзора.</p>
+    <p>На телефоне — стрелки для ходьбы, ⤒ — прыжок, проведи пальцем по сцене для обзора.</p>
   </div>
 </dialog>
 <script src="app.js" defer></script>

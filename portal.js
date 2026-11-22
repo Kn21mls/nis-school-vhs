@@ -44,8 +44,9 @@ fetch('views.json').then(r => r.json()).then(v => {
   for (const p of v) { const o = document.createElement('option'); o.value = p.name; $('placeList').append(o); }
 }).catch(() => {});
 
-export function prefillPlace(name) {
-  if (name) $('place').value = name;
+export function prefillPlace(name, y) {
+  if (name) $('place').value = name === 'Первый этаж' ? '' : name;
+  if (y != null) $('floor').value = y < 3.6 ? '1 этаж' : y < 7.6 ? '2 этаж' : '3 этаж';
   $('send').scrollIntoView({behavior: 'smooth'});
   setTimeout(() => $('desc').focus({preventScroll: true}), 500);
 }
@@ -132,8 +133,9 @@ const b64 = blob => new Promise((ok, no) => {
 
 $('uploadForm').onsubmit = async e => {
   e.preventDefault();
-  const place = $('place').value.trim(), description = $('desc').value.trim();
-  if (place.length < 2) return msg('sendMsg', 'Укажи место', 'err');
+  const spot = $('place').value.trim(), description = $('desc').value.trim();
+  if (spot.length < 2) return msg('sendMsg', 'Укажи место', 'err');
+  const place = `${$('floor').value} · ${spot}`;
   if (description.length < 10) return msg('sendMsg', 'Опиши, что не так (от 10 символов)', 'err');
   if (!photo) return msg('sendMsg', 'Добавь фото', 'err');
   $('sendBtn').disabled = true; msg('sendMsg', 'отправка…');

@@ -1,4 +1,4 @@
-import * as T from 'three';
+﻿import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 export function lightInterior(renderer, scene) {
@@ -7,17 +7,15 @@ export function lightInterior(renderer, scene) {
   const generator = new T.PMREMGenerator(renderer);
   const reflections = generator.fromScene(studio, 0.045);
   scene.environment = reflections.texture;
-  scene.environmentIntensity = 0.075;
+  scene.environmentIntensity = 0.52;
   generator.dispose();
   studio.dispose();
   renderer.toneMapping = T.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.75;
-  scene.add(new T.HemisphereLight(0x789da4, 0x292425, 0.32));
-  const daylight = new T.DirectionalLight(0x92b7ae, 0.24);
+  renderer.toneMappingExposure = 0.94;
+  scene.add(new T.HemisphereLight(0xf3f8ff, 0xc3a78d, 1.18));
+  const daylight = new T.DirectionalLight(0xffedcf, 1.65);
   daylight.position.set(-22, 32, 17);
   scene.add(daylight);
-  scene.background = new T.Color(0x090e10);
-  scene.fog = new T.FogExp2(0x101a1d, 0.033);
 }
 
 function shadeFloor(material, lightmap) {
@@ -62,13 +60,9 @@ export async function finishSurfaces(model, renderer) {
     }
     if (/^(rail_glass|door_glass|glass)$/.test(material.name)) {
       material.roughness = 0.10;
-      material.envMapIntensity = 0.24;
-    }
-    if (material.emissive && material.emissiveIntensity) {
-      material.emissiveIntensity *= 0.27;
+      material.envMapIntensity = 0.9;
     }
     material.needsUpdate = true;
   }
 }
-
 

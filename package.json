@@ -1,1 +1,1 @@
-{"name":"nis-school-walk","private":true,"scripts":{"build":"esbuild app.js --bundle --minify --outfile=dist/app.js --legal-comments=eof"},"dependencies":{"three":"0.171.0","three-mesh-bvh":"0.8.3"},"devDependencies":{"esbuild":"0.28.2"}}
+{"name":"tape-02","private":true,"scripts":{"build":"esbuild app.js mod.js --bundle --minify --outdir=dist --legal-comments=eof","start":"python server.py"},"dependencies":{"three":"0.171.0","three-mesh-bvh":"0.8.3"},"devDependencies":{"esbuild":"0.28.2"}}

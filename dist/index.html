@@ -1,7 +1,158 @@
-<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f5f5ef"><title>Атлас NIS · Виртуальный кампус</title><link rel="stylesheet" href="style.css"></head><body>
-<header><div class="brand"><svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#d0f076"/><path d="m8 27 12-17 12 17h-6l-6-9-6 9z" fill="#23362b"/></svg>Атлас <b>NIS</b></div><div class="header-tools"><button id="help">Управление</button><button id="settings"><span aria-hidden="true">☷</span> Графика</button></div></header>
-<main id="home"><section class="hero"><div class="hero-copy"><small><i></i> ВИРТУАЛЬНЫЙ КАМПУС</small><h1>Прогулка<br>по школе<span>.</span></h1><p>Исследуйте интерьеры NIS от первого лица.</p><button class="start" id="enter"><svg width="17" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="m4 2 12 7-12 7z" fill="currentColor"/></svg>Начать прогулку</button></div><div class="caption">Атриум <span>/</span> Вид с галереи</div></section>
-<section class="locations"><h2>Точки входа</h2><div class="cards" id="cards"></div></section></main>
-<section id="tour" hidden aria-label="Прогулка"><div id="viewport"></div><div class="tourbar"><button id="leave">‹ &nbsp;К обзору</button><b id="place"></b><button id="reset" title="Вернуться в точку входа">К началу</button></div><button id="resume" class="start">Продолжить прогулку</button><div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button></div><span id="fps" hidden></span></section>
-<dialog id="panel"><div class="dialog-head"><h2 id="panelTitle"></h2><button id="close" aria-label="Закрыть">×</button></div><div id="options"><label>Качество изображения<select id="quality"><option value="low">Низкое</option><option value="medium">Среднее</option><option value="high">Высокое</option></select></label><label>Угол обзора <output id="angle"></output><input id="fov" type="range" min="50" max="95"></label><label>Показывать FPS <input id="counter" type="checkbox"></label></div><div id="instructions"><p><kbd>W A S D</kbd> или стрелки — ходьба</p><p><kbd>Shift</kbd> — ускориться</p><p>Мышь — осмотр. Если курсор свободен, удерживайте левую кнопку и тяните.</p><p><kbd>Esc</kbd> — освободить курсор</p><p>На сенсорном экране используйте стрелки для ходьбы и проведите пальцем по сцене для обзора.</p></div></dialog>
-<script src="app.js" defer></script></body></html>
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#050705">
+<meta name="robots" content="noindex">
+<title>CAM_02 · Плёнка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Press+Start+2P&family=Rubik+Mono+One&display=swap">
+<link rel="icon" href="mark.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="screen-fx" aria-hidden="true"><i class="scan"></i><i class="grain"></i><i class="roll"></i></div>
+
+<header class="osd">
+  <a class="brand" href="#top" aria-label="CAM_02">
+    <img class="brand-mark" src="mark.svg" alt=""><span class="rec"><b></b>REC</span><span class="cam">CAM_02</span><span class="live">· PLAY</span>
+  </a>
+  <nav>
+    <a href="#tapes">точки</a>
+    <a href="#send">передать</a>
+    <a href="#board">таблица</a>
+  </nav>
+  <div class="header-tools">
+    <button id="help" class="ghost">управление</button>
+    <button id="settings" class="ghost">графика</button>
+    <time id="clock" class="osd-clock">--:--:--</time>
+  </div>
+</header>
+
+<main id="home">
+  <section class="hero" id="top">
+    <div class="viewfinder">
+      <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+      <div class="vf-top"><span class="rec"><b></b>REC</span><span class="osd-small">SP · CH-02</span></div>
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="prompt">&gt; play tape_02.vhs<i class="caret"></i></p>
+          <h1 class="glitch" data-text="ЗАПИСЬ НЕ СОВПАДАЕТ">ЗАПИСЬ<br>НЕ СОВПАДАЕТ<span class="cursor">_</span></h1>
+          <div class="tags"><span>объект 02</span><span class="alt">этаж 2</span><span class="dash">кадр #0</span></div>
+          <p class="lead">Плёнка восстановлена не полностью. Пройди по записи, найди место, которое в реальности выглядит иначе, — сними его и передай кадр. Каждый подтверждённый кадр приносит очки.</p>
+          <div class="cta-row">
+            <button class="big" id="enter">
+              <span class="ico" aria-hidden="true">▶</span>
+              <span><strong>Воспроизвести</strong><small>прогулка от первого лица</small></span>
+              <span class="arr" aria-hidden="true">&gt;&gt;</span>
+            </button>
+            <a class="big alt" href="#send">
+              <span class="ico" aria-hidden="true">◉</span>
+              <span><strong>Передать кадр</strong><small>фото + описание места</small></span>
+              <span class="arr" aria-hidden="true">&gt;&gt;</span>
+            </a>
+          </div>
+        </div>
+        <div class="emblem" aria-hidden="true">
+          <i class="ch r"></i><i class="ch c"></i><img class="ch g" src="mark.svg" alt=""><i class="ch lines"></i>
+          <span class="callout one">сигнал слабый_</span>
+          <span class="callout two">&gt; ./track --fix</span>
+        </div>
+      </div>
+      <div class="tracking" aria-hidden="true"></div>
+      <div class="vf-bottom"><span class="osd-small" id="tapeDate">НОЯ 22 2026</span><span class="timecode" id="timecode">00:00:00</span></div>
+    </div>
+  </section>
+
+  <section class="block" id="tapes">
+    <div class="block-head"><h2><span>01</span>Точки входа</h2><p class="osd-small">&gt; выбери кассету</p></div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="block" id="send">
+    <div class="block-head"><h2><span>02</span>Передать кадр</h2><p class="osd-small">&gt; очки только после проверки</p></div>
+    <div class="send-grid">
+      <div class="panel-box" id="joinBox">
+        <h3>Позывной</h3>
+        <p class="muted">Под ним ты появишься в таблице. Код доступа сохранится в этом браузере — запиши его, чтобы войти с другого устройства.</p>
+        <form id="joinForm" class="row-form">
+          <input id="joinName" name="name" maxlength="24" minlength="2" required placeholder="например: night_owl" autocomplete="off">
+          <button class="btn">создать</button>
+        </form>
+        <details class="restore"><summary>У меня уже есть код доступа</summary>
+          <form id="restoreForm" class="row-form"><input id="restoreCode" required placeholder="код доступа" autocomplete="off"><button class="btn ghost">войти</button></form>
+        </details>
+        <p class="form-msg" id="joinMsg" role="status"></p>
+      </div>
+
+      <div class="panel-box" id="meBox" hidden>
+        <div class="me-head">
+          <div><p class="osd-small">позывной</p><h3 id="meName"></h3></div>
+          <div class="score"><span id="mePoints">0</span><small>очков</small></div>
+        </div>
+        <details class="restore"><summary>Код доступа</summary><p class="muted">Нужен для входа с другого устройства. Никому не показывай.</p><code id="meCode"></code><button class="btn ghost small" id="logout" type="button">выйти</button></details>
+        <h4>Мои кадры</h4>
+        <ul class="my-list" id="myList"><li class="muted">пока пусто</li></ul>
+      </div>
+
+      <form class="panel-box upload" id="uploadForm" novalidate>
+        <h3>Новый кадр</h3>
+        <label>Место
+          <input id="place" list="placeList" required maxlength="80" placeholder="коридор у лестницы, 2 этаж">
+          <datalist id="placeList"></datalist>
+        </label>
+        <label>Что не так на записи
+          <textarea id="desc" required minlength="10" maxlength="1200" rows="4" placeholder="В модели здесь стена, а на самом деле стеклянная дверь; нет скамейки у окна…"></textarea>
+        </label>
+        <label class="drop" id="drop">
+          <input id="photo" type="file" accept="image/*" required>
+          <span class="drop-empty"><b>◉ выбрать фото</b><small>или перетащи сюда · JPG / PNG / WEBP</small></span>
+          <img id="preview" alt="" hidden>
+        </label>
+        <p class="muted tiny">Перед отправкой фото сжимается, данные о геопозиции и камере удаляются. Не снимай людей.</p>
+        <button class="big submit" id="sendBtn" disabled>
+          <span class="ico" aria-hidden="true">↑</span><span><strong>Передать</strong><small id="sendHint">сначала создай позывной</small></span><span class="arr" aria-hidden="true">&gt;&gt;</span>
+        </button>
+        <p class="form-msg" id="sendMsg" role="status"></p>
+      </form>
+    </div>
+  </section>
+
+  <section class="block" id="board">
+    <div class="block-head"><h2><span>03</span>Таблица сигналов</h2><p class="osd-small">&gt; обновлено <span id="boardTime">—</span></p></div>
+    <ol class="board" id="boardList"><li class="muted">нет подтверждённых кадров</li></ol>
+  </section>
+
+  <footer class="ticker" aria-hidden="true"><div><span>◉ передай кадр — получи очки</span><span>✦ очки начисляются после проверки</span><span>◉ не снимай людей</span><span>✦ tracking…</span><span>◉ передай кадр — получи очки</span><span>✦ очки начисляются после проверки</span><span>◉ не снимай людей</span><span>✦ tracking…</span></div></footer>
+</main>
+
+<section id="tour" hidden aria-label="Прогулка">
+  <div id="viewport"></div>
+  <div class="tour-osd" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><span class="rec"><b></b>REC</span><span class="timecode" id="tourTime">00:00:00</span></div>
+  <div class="tourbar"><button id="leave">‹ стоп</button><b id="place-name"></b><button id="snap" title="Есть расхождение? Передай кадр">◉ здесь не так</button><button id="reset" title="Вернуться в точку входа">↺ к началу</button></div>
+  <button id="resume" class="btn">продолжить</button>
+  <div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button></div>
+  <span id="fps" hidden></span>
+</section>
+
+<dialog id="panel">
+  <div class="dialog-head"><h2 id="panelTitle"></h2><button id="close" aria-label="Закрыть">×</button></div>
+  <div id="options">
+    <label>Качество изображения<select id="quality"><option value="low">низкое</option><option value="medium">среднее</option><option value="high">высокое</option></select></label>
+    <label>Угол обзора <output id="angle"></output><input id="fov" type="range" min="50" max="95"></label>
+    <label class="check">Показывать FPS <input id="counter" type="checkbox"></label>
+  </div>
+  <div id="instructions">
+    <p><kbd>W A S D</kbd> или стрелки — ходьба</p>
+    <p><kbd>Shift</kbd> — ускориться</p>
+    <p>Мышь — осмотр. Если курсор свободен, удерживай левую кнопку и тяни.</p>
+    <p><kbd>Esc</kbd> — освободить курсор</p>
+    <p>На телефоне — стрелки для ходьбы, проведи пальцем по сцене для обзора.</p>
+  </div>
+</dialog>
+<script src="app.js" defer></script>
+</body>
+</html>

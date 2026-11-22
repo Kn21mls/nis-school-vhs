@@ -1,13 +1,14 @@
 import * as T from 'three';
 import {lightInterior,finishSurfaces} from './interior.js';
+import {prefillPlace} from './portal.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { computeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 T.Mesh.prototype.raycast=acceleratedRaycast;
 const $=id=>document.getElementById(id);
 const places=[['Атриум','atrium','Центральный холл'],['Стеклянная галерея','gallery','Панорамный проход'],['Информационный центр','centre','Учебное пространство']];
-for(const [name,img,desc] of places){
+for(const [i,[name,img,desc]] of places.entries()){
   const b=document.createElement('button');b.className='card';
-  b.innerHTML='<img alt="" src="'+img+'.webp"><span><strong>'+name+'</strong><small>'+desc+'</small></span><span class="chev" aria-hidden="true">›</span>';
+  b.innerHTML='<img alt="" src="'+img+'.webp"><span><strong>'+name+'</strong><small>'+desc+'</small></span><span class="chev" aria-hidden="true">TAPE 0'+(i+1)+'</span>';
   b.onclick=()=>start(name);$('cards').append(b);
 }
 let renderer,camera,scene,views,pending,active=false,paused=false,selected,serial=0,drag=null;
@@ -17,7 +18,7 @@ const keys=new Set(),meshes=[],ray=new T.Raycaster(),origin=new T.Vector3(),dir=
 ray.firstHitOnly=true;
 const touch=matchMedia('(pointer:coarse)').matches;
 let prefs={quality:'medium',fov:72,counter:false};
-try{Object.assign(prefs,JSON.parse(localStorage.nisSettings||'{}'));}catch{}
+try{Object.assign(prefs,JSON.parse(localStorage.tapeSettings||'{}'));}catch{}
 function resize(){ dirty=true;
   const v=$('viewport');if(!renderer||!v.clientWidth)return;
   renderer.setSize(v.clientWidth,v.clientHeight,false);camera.aspect=v.clientWidth/v.clientHeight;camera.updateProjectionMatrix();
@@ -28,7 +29,7 @@ function apply(){
 }
 for(const id of ['quality','fov','counter']){
   const input=$(id);if(id==='counter')input.checked=prefs[id];else input.value=prefs[id];
-  input.oninput=()=>{prefs[id]=id==='counter'?input.checked:input.value;apply();try{localStorage.nisSettings=JSON.stringify(prefs);}catch{}};
+  input.oninput=()=>{prefs[id]=id==='counter'?input.checked:input.value;apply();try{localStorage.tapeSettings=JSON.stringify(prefs);}catch{}};
 }
 apply();window.addEventListener('resize',resize);
 function panel(help){
@@ -57,7 +58,7 @@ function spawn(){
   const [x,y,z]=v.direction;yaw=Math.atan2(-x,-z);pitch=Math.asin(y);look();
 }
 async function start(name){
-  const seq=++serial;selected=name;$('place').textContent=name;$('home').hidden=true;$('tour').hidden=false;$('resume').hidden=false;$('resume').disabled=true;$('resume').textContent='Загрузка модели…';
+  const seq=++serial;selected=name;$('place-name').textContent=name;$('home').hidden=true;$('tour').hidden=false;$('resume').hidden=false;$('resume').disabled=true;$('resume').textContent='Загрузка модели…';
   try{
     pending??=load().catch(e=>{pending=null;throw e;});await pending;if(seq!==serial)return;
     resize();spawn();active=true;paused=false;$('resume').hidden=true;$('resume').disabled=false;$('pad').hidden=!touch;prev=performance.now();renderer.setAnimationLoop(frame);
@@ -65,6 +66,7 @@ async function start(name){
 }
 $('leave').onclick=()=>{++serial;active=false;keys.clear();drag=null;if(document.pointerLockElement)document.exitPointerLock();renderer?.setAnimationLoop(null);$('tour').hidden=true;$('home').hidden=false;$('enter').focus();};
 function pause(){paused=true;keys.clear();drag=null;if(document.pointerLockElement)document.exitPointerLock();$('resume').textContent='Продолжить прогулку';$('resume').hidden=false;}
+$('snap').onclick=()=>{$('leave').onclick();prefillPlace(selected);};
 $('reset').onclick=()=>{if(active)spawn();};
 function lock(){if(!touch&&!document.pointerLockElement){try{renderer.domElement.requestPointerLock?.()?.catch(()=>{});}catch{}}}
 $('resume').onclick=()=>{if(!active){start(selected);return;}paused=false;$('resume').hidden=true;lock();};

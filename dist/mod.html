@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>CAM_02 · Монтажная</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Press+Start+2P&family=Rubik+Mono+One&display=swap">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="mod.css">
+</head>
+<body>
+<div class="screen-fx" aria-hidden="true"><i class="scan"></i><i class="grain"></i></div>
+<header class="osd">
+  <a class="brand" href="./"><span class="rec"><b></b>REC</span><span class="cam">CAM_02</span><span class="live">· МОНТАЖНАЯ</span></a>
+  <div class="header-tools" style="margin-left:auto"><button class="ghost" id="logout" hidden>выйти</button></div>
+</header>
+<main>
+  <section class="block mod-login" id="login" hidden>
+    <form class="panel-box" id="loginForm">
+      <h3>Доступ к монтажной</h3>
+      <label>Пароль<input id="password" type="password" required autocomplete="current-password"></label>
+      <button class="btn">войти</button>
+      <p class="form-msg" id="loginMsg" role="status"></p>
+    </form>
+  </section>
+  <section class="block" id="desk" hidden>
+    <div class="block-head">
+      <h2><span>//</span>Проверка кадров</h2>
+      <div class="filters" id="filters" role="tablist">
+        <button data-s="pending" class="on">на проверке <b></b></button>
+        <button data-s="valid">валидные <b></b></button>
+        <button data-s="invalid">невалидные <b></b></button>
+        <button data-s="all">все</button>
+      </div>
+    </div>
+    <p class="muted tiny">Валидный кадр = место, где 3D-модель неточна. Очки получает автор кадра. Решение можно изменить в любой момент.</p>
+    <div class="queue" id="queue"></div>
+  </section>
+</main>
+<dialog id="viewer" class="viewer"><img id="viewerImg" alt=""><button class="btn" id="viewerClose">закрыть</button></dialog>
+<script src="mod.js" defer></script>
+</body>
+</html>

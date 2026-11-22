@@ -1,1 +1,20 @@
-{"name":"tape-02","private":true,"scripts":{"build":"esbuild app.js mod.js --bundle --minify --outdir=dist --legal-comments=eof","start":"python server.py"},"dependencies":{"three":"0.171.0","three-mesh-bvh":"0.8.3"},"devDependencies":{"esbuild":"0.28.2"}}
+{
+  "name": "tape-02",
+  "private": true,
+  "scripts": {
+    "build": "esbuild app.js mod.js --bundle --minify --outdir=dist --legal-comments=eof",
+    "start": "python server.py",
+    "test:api": "node test/api.test.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.1",
+    "@vercel/blob": "^2.9.0",
+    "three": "0.171.0",
+    "three-mesh-bvh": "0.8.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.17",
+    "esbuild": "0.28.2"
+  },
+  "type": "module"
+}

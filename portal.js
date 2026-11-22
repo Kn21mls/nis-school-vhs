@@ -1,7 +1,7 @@
 // Student side: callsign, photo upload, own submissions, leaderboard, OSD clocks.
 const $ = id => document.getElementById(id);
 const KEY = 'tapeKey';
-const MAX_SIDE = 2400;
+const MAX_SIDE = 2000;
 const STATUS = {pending: 'на проверке', valid: 'принято', invalid: 'отклонено'};
 let token = read();
 let photo = null;
@@ -102,9 +102,9 @@ async function prepare(file) {
   const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
   c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
   img.close?.();
-  for (const q of [.86, .75, .6]) {
+  for (const q of [.85, .72, .58, .45]) {
     const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', q));
-    if (blob && blob.size < 7.5e6) return blob;
+    if (blob && blob.size < 2.9e6) return blob;
   }
   throw new Error('Фото слишком большое');
 }

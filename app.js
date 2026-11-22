@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {lightInterior,finishSurfaces} from './interior.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { computeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 T.Mesh.prototype.raycast=acceleratedRaycast;
@@ -39,11 +40,10 @@ async function load(){
   if(!renderer){
     renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});$('viewport').append(renderer.domElement);
     scene=new T.Scene();scene.background=new T.Color(0xcbd9db);camera=new T.PerspectiveCamera(72,1,.045,350);camera.rotation.order='YXZ';
-    scene.add(new T.HemisphereLight(0xfff8e9,0xabc0ba,2.25));
-    const sun=new T.DirectionalLight(0xffedcd,1.75);sun.position.set(-35,65,28);scene.add(sun);apply();
+    lightInterior(renderer,scene);apply();
   }
   const [g,v]=await Promise.all([new GLTFLoader().loadAsync('school.glb',e=>{if(e.total)$('resume').textContent='Загрузка · '+Math.round(e.loaded*100/e.total)+'%';}),fetch('views.json').then(r=>r.json())]);
-  views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
+  await finishSurfaces(g.scene,renderer);views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
   g.scene.traverse(m=>{if(m.isMesh){if(!m.geometry.boundsTree)computeBoundsTree.call(m.geometry);meshes.push(m);}});
 }
 function hit(p,d,far){ray.set(p,d);ray.far=far;return ray.intersectObjects(meshes,false)[0];}
@@ -92,4 +92,5 @@ function frame(time){
   }
   if(dirty){renderer.render(scene,camera);dirty=false;}frames++;if(time-last>650){$('fps').textContent=Math.round(frames*1000/(time-last))+' FPS';last=time;frames=0;}
 }
+
 

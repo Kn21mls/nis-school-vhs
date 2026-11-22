@@ -1,4 +1,5 @@
 import * as T from 'three';
+import {installDoors} from './doors.js';
 import {lightInterior,finishSurfaces} from './interior.js';
 import {prefillPlace} from './portal.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -13,6 +14,8 @@ for(const [i,[name,img,desc]] of places.entries()){
 }
 let renderer,camera,scene,views,pending,active=false,paused=false,selected,serial=0,drag=null;
 let dirty=true;
+let doors;
+const doorDirection=new T.Vector3();
 let yaw=0,pitch=0,prev=0,frames=0,last=0;
 const keys=new Set(),meshes=[],ray=new T.Raycaster(),origin=new T.Vector3(),dir=new T.Vector3(),down=new T.Vector3(0,-1,0);
 ray.firstHitOnly=true;
@@ -45,8 +48,17 @@ async function load(){
     const cameraLight=new T.PointLight(0xc0d1b4,4.5,8,2);camera.add(cameraLight);scene.add(camera);apply();
   }
   const [g,v]=await Promise.all([new GLTFLoader().loadAsync('school.glb',e=>{if(e.total)$('resume').textContent='Загрузка · '+Math.round(e.loaded*100/e.total)+'%';}),fetch('views.json').then(r=>r.json())]);
-  await finishSurfaces(g.scene,renderer);views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
+  await finishSurfaces(g.scene,renderer);doors=installDoors(g.scene);views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
   g.scene.traverse(m=>{if(m.isMesh){if(!m.geometry.boundsTree)computeBoundsTree.call(m.geometry);meshes.push(m);}});
+}
+function toggleDoor(){
+  camera.getWorldDirection(doorDirection);
+  const result=hit(camera.position,doorDirection,2.5);
+  const hinge=doors.get(result?.object);
+  if(!hinge)return;
+  hinge.rotation.y=hinge.rotation.y===0?Math.PI/2:0;
+  hinge.updateMatrixWorld(true);
+  dirty=true;
 }
 function hit(p,d,far){ray.set(p,d);ray.far=far;return ray.intersectObjects(meshes,false)[0];}
 const eye=1.24;
@@ -82,7 +94,7 @@ $('viewport').onpointerdown=e=>{if(!active||paused)return;drag=[e.clientX,e.clie
 $('viewport').onpointermove=e=>{if(drag&&!paused&&!document.pointerLockElement){rotate(e.clientX-drag[0],e.clientY-drag[1]);drag=[e.clientX,e.clientY];}};
 $('viewport').onpointerup=$('viewport').onpointercancel=()=>drag=null;
 document.onmousemove=e=>{if(active&&!paused&&document.pointerLockElement)rotate(e.movementX,e.movementY);};
-window.addEventListener('keydown',e=>{if(!active||paused||$('panel').open)return;if(e.code==='Escape'){pause();return;}if(e.code==='KeyF'){e.preventDefault();if(!e.repeat)setFlying(!flying);return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Space','KeyC'].includes(e.code)){e.preventDefault();keys.add(e.code);}});
+window.addEventListener('keydown',e=>{if(!active||paused||$('panel').open)return;if(e.code==='Escape'){pause();return;}if(e.code==='KeyE'){e.preventDefault();if(!e.repeat)toggleDoor();return;}if(e.code==='KeyF'){e.preventDefault();if(!e.repeat)setFlying(!flying);return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Space','KeyC'].includes(e.code)){e.preventDefault();keys.add(e.code);}});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{if(active)pause();});
 $('padFly').onpointerdown=e=>{e.preventDefault();setFlying(!flying);};
 for(const b of $('pad').querySelectorAll('[data-key]')){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);};b.onpointerup=b.onpointercancel=()=>keys.delete(b.dataset.key);}

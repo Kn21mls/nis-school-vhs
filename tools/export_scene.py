@@ -61,6 +61,17 @@ for mat in bpy.data.materials:
     base.default_value = col
     print("flattened:", mat.name, [round(c, 3) for c in col[:3]])
 
+# Open lockers: the black interior shares faces exactly with the steel body (0 mm) and uses the
+# same material as monitors. Give it its own material so the site can pull it forward in depth.
+for ob in bpy.data.objects:
+    if ob.type == "MESH" and ob.name.startswith("Lockers_Inside"):
+        for slot in ob.material_slots:
+            if slot.material and not slot.material.name.startswith("locker_inside"):
+                inside = slot.material.copy()
+                inside.name = "locker_inside"
+                slot.link = "OBJECT"
+                slot.material = inside
+
 # Only what is actually visible in renders goes to the site.
 for ob in bpy.context.view_layer.objects:
     ob.select_set(ob.type in {"MESH", "CURVE", "FONT", "SURFACE", "META"} and ob.visible_get() and not ob.hide_render)

@@ -40,7 +40,7 @@ $('enter').onclick=()=>start('Атриум');
 async function load(){
   if(!renderer){
     renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});$('viewport').append(renderer.domElement);
-    scene=new T.Scene();scene.background=new T.Color(0xcbd9db);camera=new T.PerspectiveCamera(72,1,.1,350);camera.rotation.order='YXZ';
+    scene=new T.Scene();scene.background=new T.Color(0xcbd9db);camera=new T.PerspectiveCamera(72,1,.045,350);camera.rotation.order='YXZ';
     lightInterior(renderer,scene);
     const cameraLight=new T.PointLight(0xc0d1b4,4.5,8,2);camera.add(cameraLight);scene.add(camera);apply();
   }
@@ -54,12 +54,8 @@ const bodyRadius=0.175;
 // Jumping: vertical speed, ground contact and time in the air (respawn if we fall out of the model).
 const gravity=9.8,jumpSpeed=3.7,up=new T.Vector3(0,1,0);
 let vy=0,grounded=true,airTime=0;
-// Flight: F toggles, Space up, C down; walls still block, floors and ceilings stop you.
+// Flight bypasses collisions so the model can be inspected from either side of a wall.
 let flying=false;
-// Grid ceilings have gaps a single ray slips through, so above 2.6 m over the floor
-// flying is allowed only where the space above is open (atrium); no floor below = outside.
-const probe=new T.Vector3();
-function headroom(x,y,z){probe.set(x,y,z);const f=hit(probe,down,14);if(!f)return false;if(y-f.point.y<=2.6)return true;return !hit(probe,up,2.5);}
 function setFlying(on){flying=on;vy=0;airTime=0;if(!on)grounded=false;$('flyBadge').hidden=!on;$('padDown').hidden=!on;$('padFly').classList.toggle('on',on);dirty=true;}
 function look(){dirty=true;camera.rotation.set(pitch,yaw,0,'YXZ');}
 function spawn(){
@@ -92,22 +88,20 @@ $('padFly').onpointerdown=e=>{e.preventDefault();setFlying(!flying);};
 for(const b of $('pad').querySelectorAll('[data-key]')){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);};b.onpointerup=b.onpointercancel=()=>keys.delete(b.dataset.key);}
 function move(dx,dz){
   const p=camera.position,dist=Math.hypot(dx,dz);if(!dist)return;
+  if(flying){p.x+=dx;p.z+=dz;dirty=true;return;}
   dir.set(dx/dist,0,dz/dist);
   for(const height of [-eye+.38,.055]){origin.copy(p);origin.y+=height;if(hit(origin,dir,dist+bodyRadius))return;}
-  if(flying){if(headroom(p.x+dx,p.y,p.z+dz)){p.x+=dx;p.z+=dz;dirty=true;}return;}
   origin.set(p.x+dx,p.y-eye+.32,p.z+dz);
   if(grounded){const floor=hit(origin,down,.88);if(floor){p.set(origin.x,floor.point.y+eye,origin.z);dirty=true;}return;}
   // In the air: allow the step only above solid ground, so a jump never carries you off a gallery.
   if(hit(origin,down,1.7)){p.x=origin.x;p.z=origin.z;dirty=true;}
 }
-function vertical(dt){
+function vertical(dt,sprint){
   const p=camera.position;
   if(flying){
     const v=Number(keys.has('Space'))-Number(keys.has('KeyC'));if(!v)return;
-    const dy=v*(keys.has('ShiftLeft')||keys.has('ShiftRight')?5:2.8)*dt;dirty=true;
-    if(dy>0){if(!hit(p,up,dy+.15)&&headroom(p.x,p.y+dy,p.z))p.y+=dy;return;}
-    const floor=hit(p,down,eye-dy);
-    p.y=floor&&p.y+dy<floor.point.y+eye?floor.point.y+eye:p.y+dy;return;
+    p.y+=v*(sprint?10:2.8)*dt;dirty=true;
+    return;
   }
   if(keys.has('Space')&&grounded){vy=jumpSpeed;grounded=false;airTime=0;}
   if(grounded){
@@ -126,9 +120,10 @@ function frame(time){
   if(!paused){
     const f=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
     const s=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
-    const step=(keys.has('ShiftLeft')||keys.has('ShiftRight')?(flying?7:4.5):(flying?3.5:2.6))*dt/(Math.hypot(f,s)||1);
+    const sprint=keys.has('ShiftLeft')||keys.has('ShiftRight');
+    const step=(sprint?(flying?14:4.5):(flying?3.5:2.6))*dt/(Math.hypot(f,s)||1);
     move((s*Math.cos(yaw)-f*Math.sin(yaw))*step,0);move(0,(-s*Math.sin(yaw)-f*Math.cos(yaw))*step);
-    vertical(dt);
+    vertical(dt,sprint);
   }
   if(dirty){renderer.render(scene,camera);dirty=false;}frames++;if(time-last>650){$('fps').textContent=Math.round(frames*1000/(time-last))+' FPS';last=time;frames=0;}
 }

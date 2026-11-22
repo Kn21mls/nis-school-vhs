@@ -1,4 +1,4 @@
-﻿import * as T from 'three';
+import * as T from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 export function lightInterior(renderer, scene) {
@@ -19,7 +19,7 @@ export function lightInterior(renderer, scene) {
 }
 
 function shadeFloor(material, lightmap) {
-  const tiled = /^(floor_f2|granite)$/.test(material.name);
+  const tiled = /^(floor_f[12]|granite)$/.test(material.name);
   material.customProgramCacheKey = () => 'floor-light-' + tiled;
   material.onBeforeCompile = shader => {
     shader.uniforms.floorLight = {value:lightmap};
@@ -45,6 +45,27 @@ function shadeFloor(material, lightmap) {
   };
 }
 
+// Ceiling tiles (60 cm grid) drawn in the shader: the scene builds them procedurally,
+// which glTF cannot export, so the material arrives as a flat colour.
+function gridCeiling(material) {
+  material.customProgramCacheKey = () => 'ceiling-grid';
+  material.onBeforeCompile = shader => {
+    shader.vertexShader = 'varying vec3 surfaceWorld;\n' + shader.vertexShader;
+    shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
+      surfaceWorld = (modelMatrix * vec4(transformed, 1.)).xyz;
+      #include <project_vertex>`);
+    shader.fragmentShader = 'varying vec3 surfaceWorld;\n' + shader.fragmentShader;
+    shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
+      #include <color_fragment>
+      vec2 grid = surfaceWorld.xz / 0.60;
+      vec2 grad = max(fwidth(grid), vec2(0.0001));
+      vec2 edge = 0.5 - abs(fract(grid) - 0.5);
+      vec2 line = 1.0 - smoothstep(vec2(0.), grad + 0.012, edge);
+      float seam = max(line.x, line.y) * (1.0 - smoothstep(0.05, 0.3, max(grad.x, grad.y)));
+      diffuseColor.rgb *= 1.0 - seam * 0.3;`);
+  };
+}
+
 export async function finishSurfaces(model, renderer) {
   const lightmap = await new T.TextureLoader().loadAsync('floor-light.png');
   lightmap.flipY = false;
@@ -54,6 +75,7 @@ export async function finishSurfaces(model, renderer) {
   for (const material of materials) {
     if (material.map) material.map.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
     if (/^(floor_|room_|courtyard$|granite$)/.test(material.name)) shadeFloor(material, lightmap);
+    if (material.name === 'ceiling') gridCeiling(material);
     if (/^(steel|steel_legs|stainless|aluminium|window_frame)$/.test(material.name)) {
       material.metalness = 0.79;
       material.roughness = 0.30;

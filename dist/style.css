@@ -219,6 +219,10 @@ body:has(#tour:not([hidden])) .screen-fx{display:none}
 #pad button{height:46px;background:#050705cc;color:var(--acid);border:1px solid var(--acid);touch-action:none}
 #pad button:first-child{grid-column:2}#pad button:nth-child(2){grid-column:1}
 #pad .jump{grid-column:3;grid-row:1;background:var(--acid);color:var(--acid-ink);font-size:20px}
+#pad .fly{grid-column:1;grid-row:1;font-size:18px}
+#pad .fly.on{background:var(--cyan);color:#001318;border-color:var(--cyan)}
+#pad .down{grid-column:3;grid-row:3;background:var(--acid);color:var(--acid-ink);font-size:20px}
+.fly-badge{color:var(--cyan)!important;border-color:var(--cyan)!important}
 .place-row{display:grid;grid-template-columns:150px 1fr;gap:12px}
 @media (max-width:640px){.place-row{grid-template-columns:1fr;gap:0}}
 

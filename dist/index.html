@@ -139,9 +139,9 @@
 <section id="tour" hidden aria-label="Прогулка">
   <div id="viewport"></div>
   <div class="tour-osd" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><span class="rec"><b></b>REC</span><span class="timecode" id="tourTime">00:00:00</span></div>
-  <div class="tourbar"><button id="leave">‹ к обзору</button><b id="place-name"></b><button id="snap" title="Отправить фото этого места">◉ нашёл неточность</button><button id="reset" title="Вернуться в точку входа">↺ к началу</button></div>
+  <div class="tourbar"><button id="leave">‹ к обзору</button><b id="place-name"></b><span id="flyBadge" class="fly-badge" hidden>✈ полёт · F — выкл</span><button id="snap" title="Отправить фото этого места">◉ нашёл неточность</button><button id="reset" title="Вернуться в точку входа">↺ к началу</button></div>
   <button id="resume" class="btn">продолжить</button>
-  <div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button><button data-key="Space" aria-label="Прыжок" class="jump">⤒</button></div>
+  <div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button><button data-key="Space" aria-label="Прыжок / вверх" class="jump">⤒</button><button id="padFly" class="fly" aria-label="Полёт">✈</button><button id="padDown" data-key="KeyC" aria-label="Вниз" class="down" hidden>⤓</button></div>
   <span id="fps" hidden></span>
 </section>
 
@@ -156,9 +156,10 @@
     <p><kbd>W A S D</kbd> или стрелки — ходьба</p>
     <p><kbd>Shift</kbd> — ускориться</p>
     <p><kbd>Пробел</kbd> — прыжок</p>
+    <p><kbd>F</kbd> — полёт: <kbd>Пробел</kbd> вверх, <kbd>C</kbd> вниз</p>
     <p>Мышь — осмотр. Если курсор свободен, удерживай левую кнопку и тяни.</p>
     <p><kbd>Esc</kbd> — освободить курсор</p>
-    <p>На телефоне — стрелки для ходьбы, ⤒ — прыжок, проведи пальцем по сцене для обзора.</p>
+    <p>На телефоне — стрелки для ходьбы, ⤒ — прыжок, ✈ — полёт, проведи пальцем по сцене для обзора.</p>
   </div>
 </dialog>
 <script src="app.js" defer></script>

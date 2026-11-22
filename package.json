@@ -14,7 +14,8 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.17",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "gltfpack": "^0.25.0"
   },
   "type": "module"
 }

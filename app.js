@@ -54,11 +54,18 @@ const bodyRadius=0.175;
 // Jumping: vertical speed, ground contact and time in the air (respawn if we fall out of the model).
 const gravity=9.8,jumpSpeed=3.7,up=new T.Vector3(0,1,0);
 let vy=0,grounded=true,airTime=0;
+// Flight: F toggles, Space up, C down; walls still block, floors and ceilings stop you.
+let flying=false;
+// Grid ceilings have gaps a single ray slips through, so above 2.6 m over the floor
+// flying is allowed only where the space above is open (atrium); no floor below = outside.
+const probe=new T.Vector3();
+function headroom(x,y,z){probe.set(x,y,z);const f=hit(probe,down,14);if(!f)return false;if(y-f.point.y<=2.6)return true;return !hit(probe,up,2.5);}
+function setFlying(on){flying=on;vy=0;airTime=0;if(!on)grounded=false;$('flyBadge').hidden=!on;$('padDown').hidden=!on;$('padFly').classList.toggle('on',on);dirty=true;}
 function look(){dirty=true;camera.rotation.set(pitch,yaw,0,'YXZ');}
 function spawn(){
   const v=views.find(p=>p.name===selected)||views[0];camera.position.fromArray(v.position);
   const floor=hit(camera.position,down,2.5);if(floor)camera.position.y=floor.point.y+eye;
-  const [x,y,z]=v.direction;yaw=Math.atan2(-x,-z);pitch=Math.asin(y);vy=0;grounded=true;airTime=0;look();
+  const [x,y,z]=v.direction;yaw=Math.atan2(-x,-z);pitch=Math.asin(y);vy=0;grounded=true;airTime=0;if(flying)setFlying(false);look();
 }
 async function start(name){
   const seq=++serial;selected=name;$('place-name').textContent=name;$('home').hidden=true;$('tour').hidden=false;$('resume').hidden=false;$('resume').disabled=true;$('resume').textContent='Загрузка модели…';
@@ -79,13 +86,15 @@ $('viewport').onpointerdown=e=>{if(!active||paused)return;drag=[e.clientX,e.clie
 $('viewport').onpointermove=e=>{if(drag&&!paused&&!document.pointerLockElement){rotate(e.clientX-drag[0],e.clientY-drag[1]);drag=[e.clientX,e.clientY];}};
 $('viewport').onpointerup=$('viewport').onpointercancel=()=>drag=null;
 document.onmousemove=e=>{if(active&&!paused&&document.pointerLockElement)rotate(e.movementX,e.movementY);};
-window.addEventListener('keydown',e=>{if(!active||paused||$('panel').open)return;if(e.code==='Escape'){pause();return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Space'].includes(e.code)){e.preventDefault();keys.add(e.code);}});
+window.addEventListener('keydown',e=>{if(!active||paused||$('panel').open)return;if(e.code==='Escape'){pause();return;}if(e.code==='KeyF'){e.preventDefault();if(!e.repeat)setFlying(!flying);return;}if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Space','KeyC'].includes(e.code)){e.preventDefault();keys.add(e.code);}});
 window.addEventListener('keyup',e=>keys.delete(e.code));window.addEventListener('blur',()=>{if(active)pause();});
-for(const b of $('pad').children){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);};b.onpointerup=b.onpointercancel=()=>keys.delete(b.dataset.key);}
+$('padFly').onpointerdown=e=>{e.preventDefault();setFlying(!flying);};
+for(const b of $('pad').querySelectorAll('[data-key]')){b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);keys.add(b.dataset.key);};b.onpointerup=b.onpointercancel=()=>keys.delete(b.dataset.key);}
 function move(dx,dz){
   const p=camera.position,dist=Math.hypot(dx,dz);if(!dist)return;
   dir.set(dx/dist,0,dz/dist);
   for(const height of [-eye+.38,.055]){origin.copy(p);origin.y+=height;if(hit(origin,dir,dist+bodyRadius))return;}
+  if(flying){if(headroom(p.x+dx,p.y,p.z+dz)){p.x+=dx;p.z+=dz;dirty=true;}return;}
   origin.set(p.x+dx,p.y-eye+.32,p.z+dz);
   if(grounded){const floor=hit(origin,down,.88);if(floor){p.set(origin.x,floor.point.y+eye,origin.z);dirty=true;}return;}
   // In the air: allow the step only above solid ground, so a jump never carries you off a gallery.
@@ -93,6 +102,13 @@ function move(dx,dz){
 }
 function vertical(dt){
   const p=camera.position;
+  if(flying){
+    const v=Number(keys.has('Space'))-Number(keys.has('KeyC'));if(!v)return;
+    const dy=v*(keys.has('ShiftLeft')||keys.has('ShiftRight')?5:2.8)*dt;dirty=true;
+    if(dy>0){if(!hit(p,up,dy+.15)&&headroom(p.x,p.y+dy,p.z))p.y+=dy;return;}
+    const floor=hit(p,down,eye-dy);
+    p.y=floor&&p.y+dy<floor.point.y+eye?floor.point.y+eye:p.y+dy;return;
+  }
   if(keys.has('Space')&&grounded){vy=jumpSpeed;grounded=false;airTime=0;}
   if(grounded){
     origin.set(p.x,p.y-eye+.32,p.z);
@@ -110,7 +126,7 @@ function frame(time){
   if(!paused){
     const f=Number(keys.has('KeyW')||keys.has('ArrowUp'))-Number(keys.has('KeyS')||keys.has('ArrowDown'));
     const s=Number(keys.has('KeyD')||keys.has('ArrowRight'))-Number(keys.has('KeyA')||keys.has('ArrowLeft'));
-    const step=(keys.has('ShiftLeft')||keys.has('ShiftRight')?4.5:2.6)*dt/(Math.hypot(f,s)||1);
+    const step=(keys.has('ShiftLeft')||keys.has('ShiftRight')?(flying?7:4.5):(flying?3.5:2.6))*dt/(Math.hypot(f,s)||1);
     move((s*Math.cos(yaw)-f*Math.sin(yaw))*step,0);move(0,(-s*Math.sin(yaw)-f*Math.cos(yaw))*step);
     vertical(dt);
   }

@@ -40,7 +40,7 @@ $('enter').onclick=()=>start('Атриум');
 async function load(){
   if(!renderer){
     renderer=new T.WebGLRenderer({antialias:true,powerPreference:'high-performance'});$('viewport').append(renderer.domElement);
-    scene=new T.Scene();scene.background=new T.Color(0xcbd9db);camera=new T.PerspectiveCamera(72,1,.045,350);camera.rotation.order='YXZ';
+    scene=new T.Scene();scene.background=new T.Color(0xcbd9db);camera=new T.PerspectiveCamera(72,1,.1,350);camera.rotation.order='YXZ';
     lightInterior(renderer,scene);
     const cameraLight=new T.PointLight(0xc0d1b4,4.5,8,2);camera.add(cameraLight);scene.add(camera);apply();
   }

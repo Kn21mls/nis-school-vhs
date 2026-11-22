@@ -76,6 +76,13 @@ export async function finishSurfaces(model, renderer) {
     if (material.map) material.map.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
     if (/^(floor_|room_|courtyard$|granite$)/.test(material.name)) shadeFloor(material, lightmap);
     if (material.name === 'ceiling') gridCeiling(material);
+    // Thin details that sit millimetres off a wall, floor or ceiling: pull them forward in depth
+    // so they never fight with the surface behind them (flicker at a distance).
+    if (/^(tactile|portrait|frame_gold|values_panel|ornament|led_panel|led_rim|fluor_tube|drop_light|ic_sign|sign_|tv_screen|laptop_screen|interactive_panel|chalkboard|blind|roller_blind|vertical_blind|stair_strip|skirting)/.test(material.name)) {
+      material.polygonOffset = true;
+      material.polygonOffsetFactor = -1;
+      material.polygonOffsetUnits = -4;
+    }
     if (/^(steel|steel_legs|stainless|aluminium|window_frame)$/.test(material.name)) {
       material.metalness = 0.79;
       material.roughness = 0.30;

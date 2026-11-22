@@ -11,7 +11,9 @@ if (-not $Blend) {
 Write-Host "Scene: $Blend"
 New-Item -ItemType Directory -Force build | Out-Null
 & $B -b $Blend -P tools/export_scene.py -- build/school-raw.glb
-npx gltfpack -i build/school-raw.glb -o build/school.glb -km    # -km keeps material names (interior.js shades by name)
+# -km keeps material names (interior.js shades by name); -vp 16 = ~2 mm position steps,
+# the default 14 bits (~8 mm over the building) sinks thin decals into walls and floors (flicker).
+npx gltfpack -i build/school-raw.glb -o build/school.glb -km -vp 16
 & $B -b $Blend -P tools/bake_floor_light.py -- build/floor-light.npy
 python tools/finish_floor_light.py build/floor-light.npy build/floor-light.png dist/floor-light.png
 Copy-Item build/school.glb dist/school.glb -Force

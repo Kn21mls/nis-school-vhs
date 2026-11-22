@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#050705">
 <meta name="robots" content="noindex">
-<title>CAM_02 · Плёнка</title>
+<title>Школа в 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Press+Start+2P&family=Rubik+Mono+One&display=swap">
@@ -17,13 +17,13 @@
 <div class="screen-fx" aria-hidden="true"><i class="scan"></i><i class="grain"></i><i class="roll"></i></div>
 
 <header class="osd">
-  <a class="brand" href="#top" aria-label="CAM_02">
-    <img class="brand-mark" src="mark.svg" alt=""><span class="rec"><b></b>REC</span><span class="cam">CAM_02</span><span class="live">· PLAY</span>
+  <a class="brand" href="#top" aria-label="Школа в 3D">
+    <img class="brand-mark" src="mark.svg" alt=""><span class="rec"><b></b>REC</span><span class="cam">ШКОЛА В 3D</span>
   </a>
   <nav>
-    <a href="#tapes">точки</a>
-    <a href="#send">передать</a>
-    <a href="#board">таблица</a>
+    <a href="#tapes">прогулка</a>
+    <a href="#send">отправить фото</a>
+    <a href="#board">рейтинг</a>
   </nav>
   <div class="header-tools">
     <button id="help" class="ghost">управление</button>
@@ -36,30 +36,30 @@
   <section class="hero" id="top">
     <div class="viewfinder">
       <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
-      <div class="vf-top"><span class="rec"><b></b>REC</span><span class="osd-small">SP · CH-02</span></div>
+      <div class="vf-top"><span class="rec"><b></b>REC</span><span class="osd-small">2 этаж</span></div>
       <div class="hero-grid">
         <div class="hero-copy">
-          <p class="prompt">&gt; play tape_02.vhs<i class="caret"></i></p>
-          <h1 class="glitch" data-text="ЗАПИСЬ НЕ СОВПАДАЕТ">ЗАПИСЬ<br>НЕ СОВПАДАЕТ<span class="cursor">_</span></h1>
-          <div class="tags"><span>объект 02</span><span class="alt">этаж 2</span><span class="dash">кадр #0</span></div>
-          <p class="lead">Плёнка восстановлена не полностью. Пройди по записи, найди место, которое в реальности выглядит иначе, — сними его и передай кадр. Каждый подтверждённый кадр приносит очки.</p>
+          <p class="prompt">&gt; 3d-модель школы<i class="caret"></i></p>
+          <h1 class="glitch" data-text="НАЙДИ НЕТОЧНОСТЬ">НАЙДИ<br>НЕТОЧНОСТЬ<span class="cursor">_</span></h1>
+          <div class="tags"><span>3D-модель</span><span class="alt">2 этаж</span><span class="dash">фото = очки</span></div>
+          <p class="lead">Пройдись по 3D-модели школы от первого лица. Если какое-то место в жизни выглядит иначе — сфотографируй его и отправь. За каждое подтверждённое фото начисляются очки.</p>
           <div class="cta-row">
             <button class="big" id="enter">
               <span class="ico" aria-hidden="true">▶</span>
-              <span><strong>Воспроизвести</strong><small>прогулка от первого лица</small></span>
+              <span><strong>Начать прогулку</strong><small>3D-модель от первого лица</small></span>
               <span class="arr" aria-hidden="true">&gt;&gt;</span>
             </button>
             <a class="big alt" href="#send">
               <span class="ico" aria-hidden="true">◉</span>
-              <span><strong>Передать кадр</strong><small>фото + описание места</small></span>
+              <span><strong>Отправить фото</strong><small>фото + описание места</small></span>
               <span class="arr" aria-hidden="true">&gt;&gt;</span>
             </a>
           </div>
         </div>
         <div class="emblem" aria-hidden="true">
           <i class="ch r"></i><i class="ch c"></i><img class="ch g" src="mark.svg" alt=""><i class="ch lines"></i>
-          <span class="callout one">сигнал слабый_</span>
-          <span class="callout two">&gt; ./track --fix</span>
+          <span class="callout one">нашёл отличие?_</span>
+          <span class="callout two">&gt; отправь фото</span>
         </div>
       </div>
       <div class="tracking" aria-hidden="true"></div>
@@ -68,43 +68,43 @@
   </section>
 
   <section class="block" id="tapes">
-    <div class="block-head"><h2><span>01</span>Точки входа</h2><p class="osd-small">&gt; выбери кассету</p></div>
+    <div class="block-head"><h2><span>01</span>Точки входа</h2><p class="osd-small">&gt; выбери, откуда начать</p></div>
     <div class="cards" id="cards"></div>
   </section>
 
   <section class="block" id="send">
-    <div class="block-head"><h2><span>02</span>Передать кадр</h2><p class="osd-small">&gt; очки только после проверки</p></div>
+    <div class="block-head"><h2><span>02</span>Отправить фото</h2><p class="osd-small">&gt; очки только после проверки</p></div>
     <div class="send-grid">
       <div class="panel-box" id="joinBox">
-        <h3>Позывной</h3>
-        <p class="muted">Под ним ты появишься в таблице. Код доступа сохранится в этом браузере — запиши его, чтобы войти с другого устройства.</p>
+        <h3>Твой ник</h3>
+        <p class="muted">Под ним ты появишься в рейтинге. Код входа сохранится в этом браузере — запиши его, чтобы войти с другого устройства.</p>
         <form id="joinForm" class="row-form">
           <input id="joinName" name="name" maxlength="24" minlength="2" required placeholder="например: night_owl" autocomplete="off">
-          <button class="btn">создать</button>
+          <button class="btn">продолжить</button>
         </form>
-        <details class="restore"><summary>У меня уже есть код доступа</summary>
-          <form id="restoreForm" class="row-form"><input id="restoreCode" required placeholder="код доступа" autocomplete="off"><button class="btn ghost">войти</button></form>
+        <details class="restore"><summary>У меня есть код входа</summary>
+          <form id="restoreForm" class="row-form"><input id="restoreCode" required placeholder="код входа" autocomplete="off"><button class="btn ghost">войти</button></form>
         </details>
         <p class="form-msg" id="joinMsg" role="status"></p>
       </div>
 
       <div class="panel-box" id="meBox" hidden>
         <div class="me-head">
-          <div><p class="osd-small">позывной</p><h3 id="meName"></h3></div>
+          <div><p class="osd-small">твой ник</p><h3 id="meName"></h3></div>
           <div class="score"><span id="mePoints">0</span><small>очков</small></div>
         </div>
-        <details class="restore"><summary>Код доступа</summary><p class="muted">Нужен для входа с другого устройства. Никому не показывай.</p><code id="meCode"></code><button class="btn ghost small" id="logout" type="button">выйти</button></details>
-        <h4>Мои кадры</h4>
+        <details class="restore"><summary>Код входа</summary><p class="muted">Нужен для входа с другого устройства. Никому не показывай.</p><code id="meCode"></code><button class="btn ghost small" id="logout" type="button">выйти</button></details>
+        <h4>Мои фото</h4>
         <ul class="my-list" id="myList"><li class="muted">пока пусто</li></ul>
       </div>
 
       <form class="panel-box upload" id="uploadForm" novalidate>
-        <h3>Новый кадр</h3>
+        <h3>Новое фото</h3>
         <label>Место
           <input id="place" list="placeList" required maxlength="80" placeholder="коридор у лестницы, 2 этаж">
           <datalist id="placeList"></datalist>
         </label>
-        <label>Что не так на записи
+        <label>Что отличается от модели
           <textarea id="desc" required minlength="10" maxlength="1200" rows="4" placeholder="В модели здесь стена, а на самом деле стеклянная дверь; нет скамейки у окна…"></textarea>
         </label>
         <label class="drop" id="drop">
@@ -114,7 +114,7 @@
         </label>
         <p class="muted tiny">Перед отправкой фото сжимается, данные о геопозиции и камере удаляются. Не снимай людей.</p>
         <button class="big submit" id="sendBtn" disabled>
-          <span class="ico" aria-hidden="true">↑</span><span><strong>Передать</strong><small id="sendHint">сначала создай позывной</small></span><span class="arr" aria-hidden="true">&gt;&gt;</span>
+          <span class="ico" aria-hidden="true">↑</span><span><strong>Отправить</strong><small id="sendHint">сначала введи ник</small></span><span class="arr" aria-hidden="true">&gt;&gt;</span>
         </button>
         <p class="form-msg" id="sendMsg" role="status"></p>
       </form>
@@ -122,17 +122,17 @@
   </section>
 
   <section class="block" id="board">
-    <div class="block-head"><h2><span>03</span>Таблица сигналов</h2><p class="osd-small">&gt; обновлено <span id="boardTime">—</span></p></div>
-    <ol class="board" id="boardList"><li class="muted">нет подтверждённых кадров</li></ol>
+    <div class="block-head"><h2><span>03</span>Рейтинг</h2><p class="osd-small">&gt; обновлено <span id="boardTime">—</span></p></div>
+    <ol class="board" id="boardList"><li class="muted">пока нет подтверждённых фото</li></ol>
   </section>
 
-  <footer class="ticker" aria-hidden="true"><div><span>◉ передай кадр — получи очки</span><span>✦ очки начисляются после проверки</span><span>◉ не снимай людей</span><span>✦ tracking…</span><span>◉ передай кадр — получи очки</span><span>✦ очки начисляются после проверки</span><span>◉ не снимай людей</span><span>✦ tracking…</span></div></footer>
+  <footer class="ticker" aria-hidden="true"><div><span>◉ отправь фото — получи очки</span><span>✦ очки начисляются после проверки</span><span>◉ не снимай людей</span><span>✦ модель обновляется по вашим фото</span><span>◉ отправь фото — получи очки</span><span>✦ очки начисляются после проверки</span><span>◉ не снимай людей</span><span>✦ модель обновляется по вашим фото</span></div></footer>
 </main>
 
 <section id="tour" hidden aria-label="Прогулка">
   <div id="viewport"></div>
   <div class="tour-osd" aria-hidden="true"><span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span><span class="rec"><b></b>REC</span><span class="timecode" id="tourTime">00:00:00</span></div>
-  <div class="tourbar"><button id="leave">‹ стоп</button><b id="place-name"></b><button id="snap" title="Есть расхождение? Передай кадр">◉ здесь не так</button><button id="reset" title="Вернуться в точку входа">↺ к началу</button></div>
+  <div class="tourbar"><button id="leave">‹ к обзору</button><b id="place-name"></b><button id="snap" title="Отправить фото этого места">◉ нашёл неточность</button><button id="reset" title="Вернуться в точку входа">↺ к началу</button></div>
   <button id="resume" class="btn">продолжить</button>
   <div id="pad" hidden><button data-key="KeyW" aria-label="Вперёд">↑</button><button data-key="KeyA" aria-label="Влево">←</button><button data-key="KeyS" aria-label="Назад">↓</button><button data-key="KeyD" aria-label="Вправо">→</button></div>
   <span id="fps" hidden></span>

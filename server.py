@@ -97,7 +97,7 @@ def rate(bucket: dict, key: str, window: float, limit: int) -> bool:
 
 
 class Handler(SimpleHTTPRequestHandler):
-    server_version = "tape"
+    server_version = "web"
     sys_version = ""
     password = ""
 
@@ -192,7 +192,7 @@ class Handler(SimpleHTTPRequestHandler):
             if path == "/api/me":
                 p = self.player(con)
                 if not p:
-                    return self.fail(401, "Нет позывного")
+                    return self.fail(401, "Сначала введи ник")
                 subs = con.execute("""SELECT id, place, status, points, note, created
                     FROM submissions WHERE player_id=? ORDER BY id DESC LIMIT 60""", (p["id"],)).fetchall()
                 total = sum(s["points"] for s in subs if s["status"] == "valid")
@@ -234,16 +234,16 @@ class Handler(SimpleHTTPRequestHandler):
             data = self.body()
             name = " ".join(str(data.get("name", "")).split())
             if not NAME_RE.match(name):
-                raise ValueError("Позывной: 2–24 символа, буквы, цифры, пробел, _ - .")
+                raise ValueError("Ник: 2–24 символа, буквы, цифры, пробел, _ - .")
             if not rate(_signups, ip, 3600, 12):
-                return self.fail(429, "Слишком много позывных, попробуй позже")
+                return self.fail(429, "Слишком много регистраций, попробуй позже")
             token = secrets.token_urlsafe(24)
             try:
                 with db() as con:
                     con.execute("INSERT INTO players(name,name_key,token_hash,created) VALUES(?,?,?,?)",
                                 (name, name.casefold(), token_hash(token), time.time()))
             except sqlite3.IntegrityError:
-                return self.fail(409, "Такой позывной уже занят")
+                return self.fail(409, "Такой ник уже занят")
             return self.reply(201, {"name": name, "token": token})
 
         if path == "/api/submissions":
@@ -251,7 +251,7 @@ class Handler(SimpleHTTPRequestHandler):
             with db() as con:
                 p = self.player(con)
                 if not p:
-                    return self.fail(401, "Нет позывного")
+                    return self.fail(401, "Сначала введи ник")
                 place = " ".join(str(data.get("place", "")).split())[:80]
                 desc = str(data.get("description", "")).strip()[:1200]
                 if len(place) < 2:
@@ -271,7 +271,7 @@ class Handler(SimpleHTTPRequestHandler):
                 today = con.execute("SELECT COUNT(*) FROM submissions WHERE player_id=? AND created>?",
                                     (p["id"], time.time() - 86400)).fetchone()[0]
                 if pending >= MAX_PENDING or today >= MAX_PER_DAY:
-                    return self.fail(429, "Лимит записей: дождись проверки")
+                    return self.fail(429, "Лимит фото: дождись проверки")
                 name = f"{int(time.time())}-{secrets.token_hex(6)}.jpg"
                 (UPLOADS / name).write_bytes(photo)
                 cur = con.execute("""INSERT INTO submissions(player_id,place,description,file,created)
@@ -317,7 +317,7 @@ class Handler(SimpleHTTPRequestHandler):
                                      WHERE id=?""", (status, points, note,
                                                      None if status == "pending" else time.time(), int(m[1])))
                 if not cur.rowcount:
-                    return self.fail(404, "Нет записи")
+                    return self.fail(404, "Фото не найдено")
             return self.reply(200, {"ok": True})
 
         self.fail(404, "Нет такого адреса")

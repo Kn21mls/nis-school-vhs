@@ -2,7 +2,7 @@
 const $ = id => document.getElementById(id);
 const KEY = 'tapeKey';
 const MAX_SIDE = 2400;
-const STATUS = {pending: 'на проверке', valid: 'принят', invalid: 'отклонён'};
+const STATUS = {pending: 'на проверке', valid: 'принято', invalid: 'отклонено'};
 let token = read();
 let photo = null;
 
@@ -54,7 +54,7 @@ export function prefillPlace(name) {
 function showPlayer(me) {
   $('joinBox').hidden = !!me; $('meBox').hidden = !me;
   $('sendBtn').disabled = !me;
-  $('sendHint').textContent = me ? 'очки — после проверки' : 'сначала создай позывной';
+  $('sendHint').textContent = me ? 'очки — после проверки' : 'сначала введи ник';
   if (!me) return;
   $('meName').textContent = me.name; $('mePoints').textContent = me.points; $('meCode').textContent = token;
   $('myList').innerHTML = me.submissions.length ? me.submissions.map(s =>
@@ -82,7 +82,7 @@ $('restoreForm').onsubmit = async e => {
   catch (err) { save(prev); msg('joinMsg', err.status === 401 ? 'Код не найден' : err.message, 'err'); }
 };
 $('logout').onclick = () => {
-  if (!confirm('Выйти? Без кода доступа вернуться под этим позывным не получится.')) return;
+  if (!confirm('Выйти? Без кода входа вернуться под этим ником не получится.')) return;
   save(''); showPlayer(null);
 };
 
@@ -110,7 +110,7 @@ async function prepare(file) {
 }
 async function pick(file) {
   if (!file) return;
-  msg('sendMsg', 'обработка кадра…');
+  msg('sendMsg', 'обработка фото…');
   try {
     photo = await prepare(file);
     const prev = $('preview'); if (prev.src) URL.revokeObjectURL(prev.src);
@@ -136,10 +136,10 @@ $('uploadForm').onsubmit = async e => {
   if (place.length < 2) return msg('sendMsg', 'Укажи место', 'err');
   if (description.length < 10) return msg('sendMsg', 'Опиши, что не так (от 10 символов)', 'err');
   if (!photo) return msg('sendMsg', 'Добавь фото', 'err');
-  $('sendBtn').disabled = true; msg('sendMsg', 'передача…');
+  $('sendBtn').disabled = true; msg('sendMsg', 'отправка…');
   try {
     await api('submissions', {body: {place, description, photo: await b64(photo)}});
-    msg('sendMsg', 'Кадр передан. Очки появятся после проверки.', 'ok');
+    msg('sendMsg', 'Фото отправлено. Очки появятся после проверки.', 'ok');
     $('desc').value = ''; $('photo').value = ''; photo = null;
     $('preview').hidden = true; document.querySelector('.drop-empty').hidden = false;
     refreshMe();
@@ -154,10 +154,10 @@ async function loadBoard() {
     const me = $('meName').textContent;
     $('boardList').innerHTML = rows.length ? rows.map(r =>
       `<li class="${token && r.name === me ? 'me' : ''}"><span class="who">${esc(r.name)}</span>` +
-      `<span class="cnt">${r.count} кадр.</span><span class="pts">${r.points}</span></li>`).join('')
-      : '<li class="muted">нет подтверждённых кадров</li>';
+      `<span class="cnt">${r.count} фото</span><span class="pts">${r.points}</span></li>`).join('')
+      : '<li class="muted">пока нет подтверждённых фото</li>';
     const d = new Date(); $('boardTime').textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  } catch { $('boardList').innerHTML = '<li class="muted">сигнал потерян — сервер недоступен</li>'; }
+  } catch { $('boardList').innerHTML = '<li class="muted">сервер недоступен, попробуй позже</li>'; }
 }
 
 refreshMe().then(loadBoard);

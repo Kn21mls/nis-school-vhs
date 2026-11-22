@@ -8,7 +8,7 @@ const $=id=>document.getElementById(id);
 const places=[['Атриум','atrium','Центральный холл'],['Стеклянная галерея','gallery','Панорамный проход'],['Информационный центр','centre','Учебное пространство']];
 for(const [i,[name,img,desc]] of places.entries()){
   const b=document.createElement('button');b.className='card';
-  b.innerHTML='<img alt="" src="'+img+'.webp"><span><strong>'+name+'</strong><small>'+desc+'</small></span><span class="chev" aria-hidden="true">TAPE 0'+(i+1)+'</span>';
+  b.innerHTML='<img alt="" src="'+img+'.webp"><span><strong>'+name+'</strong><small>'+desc+'</small></span><span class="chev" aria-hidden="true">ТОЧКА 0'+(i+1)+'</span>';
   b.onclick=()=>start(name);$('cards').append(b);
 }
 let renderer,camera,scene,views,pending,active=false,paused=false,selected,serial=0,drag=null;

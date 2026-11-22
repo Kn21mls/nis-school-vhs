@@ -39,7 +39,7 @@ button{cursor:pointer}
 @keyframes blink{50%{opacity:0}}
 .cam{color:var(--acid)}.live{color:var(--dim)}
 .osd nav{display:flex;gap:4px;margin-left:auto}
-.osd nav a{font:9px var(--pix);text-decoration:none;color:var(--dim);padding:8px 10px;border:1px solid transparent;letter-spacing:.08em}
+.osd nav a{white-space:nowrap;font:9px var(--pix);text-decoration:none;color:var(--dim);padding:8px 10px;border:1px solid transparent;letter-spacing:.08em}
 .osd nav a:hover{color:var(--acid);border-color:var(--line2)}
 .header-tools{display:flex;align-items:center;gap:6px}
 .osd-clock{font:10px var(--pix);color:var(--ink);margin-left:8px;min-width:76px;text-align:right}

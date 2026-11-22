@@ -43,7 +43,7 @@ function card(s) {
       <p class="meta">от <b>${esc(s.player)}</b> · ${date(s.created)}${s.reviewed ? ' · проверено ' + date(s.reviewed) : ''}</p>
       <p class="desc">${esc(s.description)}</p>
       <div class="controls">
-        <input type="number" min="0" max="100" step="5" value="${s.status === 'valid' ? s.points : 10}" aria-label="Очки" title="Очки за валидный кадр">
+        <input type="number" min="0" max="100" step="5" value="${s.status === 'valid' ? s.points : 10}" aria-label="Очки" title="Очки за валидное фото">
         <input type="text" maxlength="300" value="${esc(s.note)}" placeholder="комментарий автору (необязательно)" aria-label="Комментарий">
       </div>
       <div class="acts">
@@ -70,7 +70,7 @@ async function load() {
   try {
     const {items, counts} = await api('mod/submissions?status=' + filter);
     for (const b of $('filters').children) { const n = b.querySelector('b'); if (n) n.textContent = counts[b.dataset.s] || 0; }
-    $('queue').replaceChildren(...(items.length ? items.map(card) : [Object.assign(document.createElement('p'), {className: 'muted', textContent: 'Пусто. Новых кадров нет.'})]));
+    $('queue').replaceChildren(...(items.length ? items.map(card) : [Object.assign(document.createElement('p'), {className: 'muted', textContent: 'Пусто. Новых фото нет.'})]));
   } catch (err) { if (!$('desk').hidden) $('queue').textContent = err.message; }
 }
 

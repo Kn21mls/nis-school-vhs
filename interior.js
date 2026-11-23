@@ -91,6 +91,10 @@ export async function finishSurfaces(model, renderer) {
       material.roughness = 0.10;
       material.envMapIntensity = 0.9;
     }
+    // Broad fabric highlights and tighter varnish reflections remain distinct under daylight.
+    if (/^(hall_fabric|curtain_cream|bag_navy|bag_black)$/.test(material.name)) material.roughness = 0.94;
+    if (/^leather_/.test(material.name)) material.roughness = 0.56;
+    if (/^(hall_maple|desk_laminate|cabinet_oak|door_oak)$/.test(material.name)) material.roughness = 0.43;
     material.needsUpdate = true;
   }
 }

@@ -6,7 +6,11 @@ Cameras, lights and hidden helper objects are left out; modifiers are applied.
 Run gltfpack on the result afterwards (see tools/update_scene.ps1).
 """
 import sys
+from pathlib import Path
 import bpy
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from web_occlusion import bake_surface_occlusion
 
 out = sys.argv[sys.argv.index("--") + 1]
 
@@ -72,6 +76,15 @@ for ob in bpy.data.objects:
                 slot.link = "OBJECT"
                 slot.material = inside
 
+# Upholstery in the Blender render has dense rounded surfaces. Keep planar faces and
+# silhouettes through quadric reduction only on cushions, leaving the building shell intact.
+for ob in bpy.context.view_layer.objects:
+    if ob.type == "MESH" and ob.name in {"Sofas_Green", "Lounge_Black_Sofas", "Lounge_Red_Sofas"}:
+        modifier = ob.modifiers.new("Web upholstery", "DECIMATE")
+        modifier.ratio = 0.26
+
+bake_surface_occlusion()
+
 # Only what is actually visible in renders goes to the site.
 for ob in bpy.context.view_layer.objects:
     ob.select_set(ob.type in {"MESH", "CURVE", "FONT", "SURFACE", "META"} and ob.visible_get() and not ob.hide_render)
@@ -82,6 +95,7 @@ bpy.ops.export_scene.gltf(
     use_selection=True,
     export_apply=True,
     export_yup=True,
+    export_vertex_color="ACTIVE",
     export_cameras=False,
     export_lights=False,
     export_extras=False,

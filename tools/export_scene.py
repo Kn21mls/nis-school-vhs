@@ -15,11 +15,51 @@ from web_occlusion import bake_surface_occlusion
 out = sys.argv[sys.argv.index("--") + 1]
 
 
+def upstream_types(sock, depth=0):
+    """Node types feeding a socket (a few levels deep, through groups' outputs)."""
+    found = set()
+    for link in sock.links:
+        n = link.from_node
+        found.add(n.bl_idname)
+        if depth < 6:
+            for i in n.inputs:
+                if i.is_linked:
+                    found |= upstream_types(i, depth + 1)
+            if n.bl_idname == "ShaderNodeGroup" and n.node_tree:
+                out = next((x for x in n.node_tree.nodes if x.bl_idname == "NodeGroupOutput"), None)
+                if out:
+                    for i in out.inputs:
+                        if i.is_linked:
+                            found |= upstream_types(i, depth + 1)
+    return found
+
+
+def uv_mapped(tex):
+    """Image textures driven by world/generated coordinates cannot be exported to glTF (no UVs)."""
+    vec = tex.inputs.get("Vector")
+    if not vec or not vec.is_linked:
+        return True
+    feeds = upstream_types(vec)
+    return "ShaderNodeUVMap" in feeds or not ({"ShaderNodeNewGeometry", "ShaderNodeTexCoord"} & feeds)
+
+
+def image_mean(img):
+    """Average colour of an image in linear space."""
+    px = list(img.pixels[:])
+    n = len(px) // 4
+    if not n:
+        return None
+    rgb = [sum(px[c::4]) / n for c in range(3)]
+    if img.colorspace_settings.name.lower().startswith("srgb") and not img.is_float:
+        rgb = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
+    return rgb + [1.0]
+
+
 def has_image(sock, depth=0):
     for link in sock.links:
         n = link.from_node
         if n.bl_idname == "ShaderNodeTexImage" and n.image:
-            return True
+            return uv_mapped(n)
         if depth < 6 and any(has_image(i, depth + 1) for i in n.inputs if i.is_linked):
             return True
     return False
@@ -43,6 +83,8 @@ def flat_color(sock):
         return [a.default_value[k] * (1 - w) + b.default_value[k] * w for k in range(4)]
     if n.bl_idname == "ShaderNodeRGB":
         return list(n.outputs[0].default_value)
+    if n.bl_idname == "ShaderNodeTexImage" and n.image and not uv_mapped(n):
+        return image_mean(n.image)
     return None
 
 
@@ -64,6 +106,24 @@ for mat in bpy.data.materials:
         mat.node_tree.links.remove(link)
     base.default_value = col
     print("flattened:", mat.name, [round(c, 3) for c in col[:3]])
+
+# Bump/normal and roughness driven by world-coordinate textures would export with no UVs too.
+for mat in bpy.data.materials:
+    if not mat.use_nodes:
+        continue
+    bsdf = next((n for n in mat.node_tree.nodes if n.bl_idname == "ShaderNodeBsdfPrincipled"), None)
+    if not bsdf:
+        continue
+    for name in ("Normal", "Roughness", "Metallic"):
+        sock = bsdf.inputs.get(name)
+        if not sock or not sock.is_linked:
+            continue
+        feeds = upstream_types(sock)
+        if "ShaderNodeTexImage" in feeds and "ShaderNodeUVMap" not in feeds and \
+                {"ShaderNodeNewGeometry", "ShaderNodeTexCoord"} & feeds:
+            for link in list(sock.links):
+                mat.node_tree.links.remove(link)
+            print("unlinked world-mapped", name, "on", mat.name)
 
 # Open lockers: the black interior shares faces exactly with the steel body (0 mm) and uses the
 # same material as monitors. Give it its own material so the site can pull it forward in depth.

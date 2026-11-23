@@ -2,7 +2,7 @@
 
     python tools/finish_floor_cycles.py build/bake dist
 
-floor-light-f1.png / floor-light-f2.png
+floor-light-f1.png / -f2.png / -f3.png
     RGB = radiance of an albedo-1 floor (Cycles linear), stored as sqrt(L / MAX);
     A = 255 where that floor was baked. 10 cm per pixel over x 4..132, three.js z 0..96.
 floor-irradiance.json  {"max": MAX, "albedo": {material: tile size in metres}}
@@ -16,7 +16,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 src, dst = Path(sys.argv[1]), Path(sys.argv[2])
-irr = np.load(src / "floor-irradiance.npy")            # (2, H, W, 3)
+irr = np.load(src / "floor-irradiance.npy")            # (floors, H, W, 3)
 lmax = float(np.nanpercentile(irr, 99.7)) * 1.25
 
 
@@ -34,7 +34,7 @@ def dilate(enc, mask, steps=3):
     return enc
 
 
-for level in (0, 1):
+for level in range(irr.shape[0]):
     lin = irr[level]
     mask = ~np.isnan(lin[..., 0])
     enc = np.sqrt(np.clip(np.nan_to_num(lin, nan=0.0) / lmax, 0, 1))

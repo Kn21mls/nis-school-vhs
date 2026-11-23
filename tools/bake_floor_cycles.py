@@ -3,12 +3,12 @@
     blender -b models/SchoolWalk.blend -P tools/bake_floor_cycles.py -- build [samples]
 
 1. Irradiance: white diffuse receivers are laid 4 mm above every upward-facing floor face
-   (floor 1 and floor 2 separately) and rendered top-down with an orthographic camera.
+   (floors 1, 2 and 3 separately: z < 1.6, < 7.0, above) and rendered top-down with an orthographic camera.
    Every other object is hidden from the camera but still emits, bounces and shadows light,
    so each pixel holds the outgoing radiance of an albedo-1 floor = what the floor would show
    with its real albedo multiplied in. Covers x 4..132 m,
    three.js z 0..96 m (Blender y 0..-96), 10 cm per pixel.
-   -> build/floor-irradiance.npy  (2, H, W, 3) linear RGB per floor, NaN where there is no floor.
+   -> build/floor-irradiance.npy  (3, H, W, 3) linear RGB per floor, NaN where there is no floor.
 2. Albedo: the procedural floor colours (terrazzo, linoleum, tiles) baked on a flat
    patch with Cycles' diffuse colour pass, saved linear for tiling in the shader.
    -> build/albedo-<material>.npy (N, N, 3)
@@ -52,7 +52,7 @@ diffuse = nt.nodes.new("ShaderNodeBsdfDiffuse")
 diffuse.inputs["Color"].default_value = (1, 1, 1, 1)
 nt.links.new(diffuse.outputs[0], nt.nodes["Material Output"].inputs["Surface"])
 
-levels = {1: bmesh.new(), 2: bmesh.new()}
+levels = {1: bmesh.new(), 2: bmesh.new(), 3: bmesh.new()}
 sources = [o for o in scene.objects if o.type == "MESH" and o.visible_get() and not o.hide_render]
 for ob in sources:
     names = [s.material.name if s.material else "" for s in ob.material_slots]
@@ -68,7 +68,7 @@ for ob in sources:
             continue
         pts = [mw @ me.vertices[i].co for i in p.vertices]
         z = sum(v.z for v in pts) / len(pts)
-        bm = levels[1 if z < 1.6 else 2]
+        bm = levels[1 if z < 1.6 else 2 if z < 7.0 else 3]
         verts = [bm.verts.new((v.x, v.y, v.z + 0.004)) for v in pts]
         try:
             bm.faces.new(verts)
@@ -107,8 +107,8 @@ cam_data.sensor_fit = "HORIZONTAL"
 scene.render.image_settings.file_format = "OPEN_EXR"
 scene.render.image_settings.color_depth = "32"
 
-result = np.full((2, H, W, 3), np.nan, dtype=np.float32)
-for level in (1, 2):
+result = np.full((3, H, W, 3), np.nan, dtype=np.float32)
+for level in (1, 2, 3):
     for lv, ob in receivers.items():
         ob.hide_render = lv != level
     path = out / f"irradiance-f{level}.exr"

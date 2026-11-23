@@ -61,6 +61,7 @@ function shadeFloor(material, bake, gain) {
   material.onBeforeCompile = shader => {
     shader.uniforms.floorLight1 = {value: bake.light1};
     shader.uniforms.floorLight2 = {value: bake.light2};
+    shader.uniforms.floorLight3 = {value: bake.light3};
     shader.uniforms.irradianceMax = {value: bake.max};
     shader.uniforms.bakeGain = gain;
     if (albedo) {
@@ -71,7 +72,7 @@ function shadeFloor(material, bake, gain) {
     shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `
       surfaceWorld = (modelMatrix * vec4(transformed, 1.)).xyz;
       #include <project_vertex>`);
-    shader.fragmentShader = 'varying vec3 surfaceWorld;\nuniform sampler2D floorLight1;uniform sampler2D floorLight2;uniform float irradianceMax;uniform float bakeGain;\n'
+    shader.fragmentShader = 'varying vec3 surfaceWorld;\nuniform sampler2D floorLight1;uniform sampler2D floorLight2;uniform sampler2D floorLight3;uniform float irradianceMax;uniform float bakeGain;\n'
       + (albedo ? 'uniform sampler2D albedoMap;uniform float albedoTile;\n' : '') + shader.fragmentShader;
     shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
       #include <color_fragment>
@@ -87,7 +88,7 @@ function shadeFloor(material, bake, gain) {
     shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `
       #include <lights_fragment_end>
       vec2 bakeUv = (surfaceWorld.xz - vec2(4.,0.)) / vec2(128.,96.);
-      vec4 bakedFloor = surfaceWorld.y < 2.1 ? texture2D(floorLight1, bakeUv) : texture2D(floorLight2, bakeUv);
+      vec4 bakedFloor = surfaceWorld.y < 2.1 ? texture2D(floorLight1, bakeUv) : surfaceWorld.y < 7.3 ? texture2D(floorLight2, bakeUv) : texture2D(floorLight3, bakeUv);
       if (bakedFloor.a > .5) {
         vec3 radiance = bakedFloor.rgb * bakedFloor.rgb * irradianceMax;
         reflectedLight.directDiffuse = vec3(0.);
@@ -108,17 +109,23 @@ function bakedAmbient(material, bake, gain) {
     previous.call(material, shader, renderer);
     shader.uniforms.ambientLight1 = {value: bake.light1};
     shader.uniforms.ambientLight2 = {value: bake.light2};
+    shader.uniforms.ambientLight3 = {value: bake.light3};
     shader.uniforms.ambientMax = {value: bake.max};
     shader.uniforms.ambientGain = gain;
     shader.vertexShader = 'varying vec3 bakeWorld;\n' + shader.vertexShader.replace('#include <project_vertex>', `
       bakeWorld = (modelMatrix * vec4(transformed, 1.)).xyz;
       #include <project_vertex>`);
-    shader.fragmentShader = 'varying vec3 bakeWorld;\nuniform sampler2D ambientLight1;uniform sampler2D ambientLight2;uniform float ambientMax;uniform float ambientGain;\n'
+    shader.fragmentShader = 'varying vec3 bakeWorld;\nuniform sampler2D ambientLight1;uniform sampler2D ambientLight2;uniform sampler2D ambientLight3;uniform float ambientMax;uniform float ambientGain;\n'
       + shader.fragmentShader.replace('#include <lights_fragment_end>', `
       #include <lights_fragment_end>
       {
         vec2 ambientUv = (bakeWorld.xz - vec2(4.,0.)) / vec2(128.,96.);
         vec4 area = bakeWorld.y < 3.3 ? texture2D(ambientLight1, ambientUv) : texture2D(ambientLight2, ambientUv);
+        if (bakeWorld.y >= 7.4) {
+          // Floor 3 exists only over the maths wing; elsewhere tall rooms (atrium, info centre) keep floor 2's light.
+          vec4 upper = texture2D(ambientLight3, ambientUv);
+          if (upper.a > .5) area = upper;
+        }
         if (area.a > .5) {
           vec3 worldNormal = normalize((vec4(normal, 0.) * viewMatrix).xyz);
           float facing = .84 + .16 * worldNormal.y;
@@ -170,7 +177,7 @@ function gridCeiling(material) {
 export async function finishSurfaces(model, renderer) {
   const loader = new T.TextureLoader();
   const meta = await new T.FileLoader().setResponseType('json').loadAsync('floor-irradiance.json');
-  const [light1, light2] = await Promise.all(['floor-light-f1.png', 'floor-light-f2.png'].map(async file => {
+  const [light1, light2, light3] = await Promise.all(['floor-light-f1.png', 'floor-light-f2.png', 'floor-light-f3.png'].map(async file => {
     const map = await loader.loadAsync(file);
     map.flipY = false;
     map.colorSpace = T.NoColorSpace;
@@ -189,7 +196,7 @@ export async function finishSurfaces(model, renderer) {
     map.needsUpdate = true;
     albedo[name] = {map, tile};
   }));
-  const bake = {light1, light2, max: meta.max, albedo};
+  const bake = {light1, light2, light3, max: meta.max, albedo};
   const gain = {value: BLENDER_EXPOSURE / renderer.toneMappingExposure};
   // Mineral grain for the granite columns, kept subtle like the render.
   const size = 128, pixels = new Uint8Array(size * size);

@@ -1,6 +1,6 @@
 import * as T from 'three';
 import {installDoors} from './doors.js';
-import {lightInterior,finishSurfaces,setInteriorQuality} from './interior.js';
+import {lightInterior,loadSurfaceTextures,finishSurfaces,setInteriorQuality} from './interior.js';
 import {prefillPlace} from './portal.js';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
@@ -50,8 +50,17 @@ async function load(){
 
     scene.add(camera);apply();
   }
-  const [g,v]=await Promise.all([new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('school.glb',e=>{if(e.total)$('resume').textContent='Загрузка · '+Math.round(e.loaded*100/e.total)+'%';}),fetch('views.json').then(r=>r.json()), lighting ??= lightInterior(renderer,scene).catch(e=>{ lighting=null; throw e; })]);
-  await finishSurfaces(g.scene,renderer);doors=installDoors(g.scene);views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
+  const [g,v,bake]=await Promise.all([
+    new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync('school.glb', e=>{
+      if(e.total)$('resume').textContent=e.loaded<e.total
+        ? 'Загрузка · '+Math.round(e.loaded*100/e.total)+'%'
+        : 'Подготовка 3D-сцены…';
+    }),
+    fetch('views.json').then(r=>r.json()),
+    loadSurfaceTextures(renderer),
+    lighting ??= lightInterior(renderer,scene).catch(e=>{ lighting=null; throw e; }),
+  ]);
+  finishSurfaces(g.scene,renderer,bake);doors=installDoors(g.scene);views=v;scene.add(g.scene);g.scene.updateMatrixWorld(true);
   g.scene.traverse(m=>{m.matrixAutoUpdate=false;if(m.isMesh){if(!m.geometry.boundsTree)computeBoundsTree.call(m.geometry);meshes.push(m);}});
 }
 function toggleDoor(){

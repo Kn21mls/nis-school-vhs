@@ -24,5 +24,10 @@ if ($LASTEXITCODE) { throw "Floor bake encoding failed" }
 & $B -b $Blend --python-exit-code 2 -P tools/bake_atrium.py -- build
 if ($LASTEXITCODE) { throw "Atrium probe bake failed" }
 Copy-Item build/atrium-probe.hdr,build/atrium-lamps.json dist -Force
-Copy-Item build/school.glb dist/school.glb -Force
+if (Get-Command cwebp -ErrorAction SilentlyContinue) {
+    python tools/compress_scene_textures.py build/school.glb dist/school.glb
+    if ($LASTEXITCODE) { throw "WebP texture encoding failed" }
+} else {
+    Copy-Item build/school.glb dist/school.glb -Force
+}
 Write-Host "dist/school.glb, floor light maps and albedo tiles updated"

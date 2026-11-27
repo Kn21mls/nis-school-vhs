@@ -174,10 +174,9 @@ function gridCeiling(material) {
   };
 }
 
-export async function finishSurfaces(model, renderer) {
+export async function loadSurfaceTextures(renderer) {
   const loader = new T.TextureLoader();
-  const meta = await new T.FileLoader().setResponseType('json').loadAsync('floor-irradiance.json');
-  const [light1, light2, light3] = await Promise.all(['floor-light-f1.png', 'floor-light-f2.png', 'floor-light-f3.png'].map(async file => {
+  const lights = Promise.all(['floor-light-f1.png', 'floor-light-f2.png', 'floor-light-f3.png'].map(async file => {
     const map = await loader.loadAsync(file);
     map.flipY = false;
     map.colorSpace = T.NoColorSpace;
@@ -187,16 +186,20 @@ export async function finishSurfaces(model, renderer) {
     map.needsUpdate = true;
     return map;
   }));
-  const albedo = {};
-  await Promise.all(Object.entries(meta.albedo).map(async ([name, tile]) => {
+  const metadata = new T.FileLoader().setResponseType('json').loadAsync('floor-irradiance.json');
+  const tiles = metadata.then(meta => Promise.all(Object.entries(meta.albedo).map(async ([name, tile]) => {
     const map = await loader.loadAsync(`albedo-${name}.jpg`);
     map.colorSpace = T.SRGBColorSpace;
     map.wrapS = map.wrapT = T.MirroredRepeatWrapping;
     map.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
     map.needsUpdate = true;
-    albedo[name] = {map, tile};
-  }));
-  const bake = {light1, light2, light3, max: meta.max, albedo};
+    return [name, {map, tile}];
+  })));
+  const [[light1, light2, light3], meta, entries] = await Promise.all([lights, metadata, tiles]);
+  return {light1, light2, light3, max: meta.max, albedo: Object.fromEntries(entries)};
+}
+
+export function finishSurfaces(model, renderer, bake) {
   const gain = {value: BLENDER_EXPOSURE / renderer.toneMappingExposure};
   // Mineral grain for the granite columns, kept subtle like the render.
   const size = 128, pixels = new Uint8Array(size * size);
